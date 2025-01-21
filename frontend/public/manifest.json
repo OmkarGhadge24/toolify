@@ -1,0 +1,16 @@
+{
+  "short_name": "Toolify",
+  "name": "Toolify - Utility SaaS Platform",
+  "icons": [
+    {
+      "src": "toolify.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "description": "Toolify is a SaaS platform offering tools like PDF to Word conversion, Word to PDF conversion, background removal, and text extraction from images."
+}

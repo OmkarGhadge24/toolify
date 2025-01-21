@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+    font-family: 'poppins';
+    src: url('../public/fonts/Poppins-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'helvetica';
+    src: url('../public/fonts/HelveticaNowDisplay-RegIta.ttf') format('truetype');
+}
