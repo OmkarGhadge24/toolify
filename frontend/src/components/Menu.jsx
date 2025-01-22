@@ -43,7 +43,7 @@ const Menu = ({ isOpen, setIsOpen }) => {
   return (
     <div
       className={`bg-white h-full text-black transition-all duration-300 ease-in-out text-sm border-2 rounded-md border-[rgba(0,0,0,0.08)] ${
-        isOpen ? "w-64" : "w-16"
+        isOpen ? "w-48 md:w-64" : "w-16"
       }`}
     >
       {/* Sidebar Header */}
@@ -62,7 +62,7 @@ const Menu = ({ isOpen, setIsOpen }) => {
           {isOpen ? (
             <FiX size={20} strokeWidth={1.5} />
           ) : (
-            <FiMaximize2 size={20} strokeWidth={1.5} />
+            <FiMaximize2 className="text-md md:text-xl" size={20} strokeWidth={1.5} />
           )}
         </button>
       </div>
