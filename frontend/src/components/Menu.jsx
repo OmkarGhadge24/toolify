@@ -1,129 +1,123 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { TiThMenuOutline } from "react-icons/ti";
-import { IoClose } from "react-icons/io5";
-import { SlRocket, SlUser, SlPhone, SlInfo, SlPaperClip } from "react-icons/sl";
+import {
+  FiChevronDown,
+  FiMaximize2,
+  FiX,
+  FiHome,
+  FiUser,
+  FiMessageSquare,
+  FiFeather,
+  FiPaperclip,
+} from "react-icons/fi";
 
-const Menu = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+const Menu = ({ isOpen, setIsOpen }) => {
+  const [activeDropdown, setActiveDropdown] = useState("");
+
+  const navItems = [
+    { title: "Home", 
+      icon: FiHome, 
+      hasDropdown: false 
+    },
+    {
+      title: "Profile",
+      icon: FiUser,
+      hasDropdown: false,
+    },
+    {
+      title: "Contact Us",
+      icon: FiMessageSquare,
+      hasDropdown: true,
+      dropdownItems: ["Email", "LinkedIn", "GitHub"],
+    },
+    { title: "About Us", 
+      icon: FiFeather, 
+      hasDropdown: false 
+    },
+    {
+      title: "Others",
+      icon: FiPaperclip,
+      hasDropdown: false,
+    },
+  ];
+
   return (
-    <div className="relative bg-[#F4EFEB] h-full">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-2">
-          <img
-            src="/images/save.png"
-            alt="Toolify"
-            className="w-10 h-10 rounded-full object-cover object-center"
-          />
-          <h1 className="text-2xl font-['helvetica'] font-semibold">Toolify</h1>
-        </div>
-        {!isMenuOpen && (
-          <button
-            className="md:hidden text-2xl"
-            onClick={() => setIsMenuOpen(true)}
-            aria-label="Open menu"
-          >
-            <TiThMenuOutline />
-          </button>
-        )}
-      </div>
-
-      {/* Mobile Menu */}
-      <div
-        className={`fixed top-0 left-0 h-full bg-[#F4EFEB] transition-transform duration-300 ease-in-out z-50 ${
-          isMenuOpen ? "translate-x-0" : "-translate-x-full"
-        } md:hidden`}
-      >
+    <div
+      className={`bg-white h-full text-black transition-all duration-300 ease-in-out text-sm border-2 rounded-md border-[rgba(0,0,0,0.08)] ${
+        isOpen ? "w-64" : "w-16"
+      }`}
+    >
+      {/* Sidebar Header */}
+      <div className="p-4 flex justify-between items-center">
+        <h1
+          className={`font-bold overflow-hidden transition-all duration-300 text-lg whitespace-nowrap text-[#3B40E8] ${
+            isOpen ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          Toolify
+        </h1>
         <button
-          className="absolute top-4 right-4 text-2xl"
-          onClick={() => setIsMenuOpen(false)}
-          aria-label="Close menu"
+          onClick={() => setIsOpen(!isOpen)}
+          className="hover:bg-[#F3F5F7] p-2 rounded-lg"
         >
-          <IoClose />
+          {isOpen ? (
+            <FiX size={20} strokeWidth={1.5} />
+          ) : (
+            <FiMaximize2 size={20} strokeWidth={1.5} />
+          )}
         </button>
-        <div className="flex flex-col items-center h-full mt-10 p-6 space-y-4">
-          <Link
-            to="/"
-            className="flex items-center w-full gap-3 text-lg text-gray-700 p-3 rounded-lg transition-all duration-300 ease-in-out hover:bg-[#3D6984] hover:text-white text-center"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            <SlRocket />
-            <span>Dashboard</span>
-          </Link>
-          <Link
-            to="/profile"
-            className="flex items-center w-full gap-3 text-lg text-gray-700 p-3 rounded-lg transition-all duration-300 ease-in-out hover:bg-[#3D6984] hover:text-white text-center"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            <SlUser />
-            <span>Profile</span>
-          </Link>
-          <Link
-            to="/about"
-            className="flex items-center w-full gap-3 text-lg text-gray-700 p-3 rounded-lg transition-all duration-300 ease-in-out hover:bg-[#3D6984] hover:text-white text-center"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            <SlInfo />
-            <span>About</span>
-          </Link>
-          <Link
-            to="/contact"
-            className="flex items-center w-full gap-3 text-lg text-gray-700 p-3 rounded-lg transition-all duration-300 ease-in-out hover:bg-[#3D6984] hover:text-white text-center"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            <SlPhone />
-            <span>Contact Us</span>
-          </Link>
-          <Link
-            to="/others"
-            className="flex items-center w-full gap-3 text-lg text-gray-700 p-3 rounded-lg transition-all duration-300 ease-in-out hover:bg-[#3D6984] hover:text-white text-center"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            <SlPaperClip />
-            <span>Others</span>
-          </Link>
-        </div>
       </div>
 
-      {/* Desktop Menu */}
-      <div className="hidden md:flex flex-col h-full gap-4 mt-5">
-        <Link
-          to="/"
-          className="flex items-center gap-3 text-lg ml-6 text-gray-700 p-3 border-r-2 border-transparent transition-all duration-300 ease-in-out hover:border-[#3D6984] text-center"
-        >
-          <SlRocket />
-          <span>Dashboard</span>
-        </Link>
-        <Link
-          to="/profile"
-          className="flex items-center gap-3 text-lg ml-6 text-gray-700 p-3 border-r-2 border-transparent transition-all duration-300 ease-in-out hover:border-[#3D6984] text-center"
-        >
-          <SlUser />
-          <span>Profile</span>
-        </Link>
-        <Link
-          to="/about"
-          className="flex items-center gap-3 text-lg ml-6 text-gray-700 p-3 border-r-2 border-transparent transition-all duration-300 ease-in-out hover:border-[#3D6984] text-center"
-        >
-          <SlInfo />
-          <span>About</span>
-        </Link>
-        <Link
-          to="/contact"
-          className="flex items-center gap-3 text-lg ml-6 text-gray-700 p-3 border-r-2 border-transparent transition-all duration-300 ease-in-out hover:border-[#3D6984] text-center"
-        >
-          <SlPhone />
-          <span>Contact Us</span>
-        </Link>
-        <Link
-          to="/others"
-          className="flex items-center gap-3 text-lg ml-6 text-gray-700 p-3 border-r-2 border-transparent transition-all duration-300 ease-in-out hover:border-[#3D6984] text-center"
-        >
-          <SlPaperClip />
-          <span>Others</span>
-        </Link>
-      </div>
+      <nav className="mt-6">
+        {navItems.map((item) => (
+          <div key={item.title}>
+            {/* Main Menu Item */}
+            <div
+              className="px-4 py-3 hover:bg-[#F3F5F7] cursor-pointer flex items-center justify-between"
+              onClick={() =>
+                item.hasDropdown && isOpen
+                  ? setActiveDropdown(
+                      activeDropdown === item.title ? "" : item.title
+                    )
+                  : null
+              }
+            >
+              <div className="flex items-center">
+                <item.icon size={20} strokeWidth={1.5} color="#000" />
+                <span
+                  className={`ml-4 whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                    isOpen ? "w-32 opacity-100" : "w-0 opacity-0"
+                  }`}
+                >
+                  {item.title}
+                </span>
+              </div>
+              {item.hasDropdown && isOpen && (
+                <FiChevronDown
+                  size={16}
+                  strokeWidth={1.5}
+                  className={`transition-transform duration-200 ${
+                    activeDropdown === item.title ? "rotate-180" : ""
+                  }`}
+                />
+              )}
+            </div>
+
+            {/* Dropdown Items */}
+            {item.hasDropdown && isOpen && activeDropdown === item.title && (
+              <div className="bg-[#f5f5f5] overflow-hidden transition-all duration-200">
+                {item.dropdownItems.map((dropdownItem) => (
+                  <div
+                    key={dropdownItem}
+                    className="px-11 py-2 hover:bg-[#f1f1f1] cursor-pointer text-sm"
+                  >
+                    {dropdownItem}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </nav>
     </div>
   );
 };
