@@ -17,7 +17,7 @@ const Others = () => {
       
       <div className="flex gap-4 mt-6">
         <a href="https://github.com/OmkarGhadge24" target="_blank" rel="noopener noreferrer">
-          <FiGithub size={30} className="hover:text-black transition-colors duration-300" />
+          <FiGithub size={30} className="hover:text-yellow-600 transition-colors duration-300" />
         </a>
         <a href="https://linkedin.com/in/omkar-ghadge-996b80317" target="_blank" rel="noopener noreferrer">
           <FiLinkedin size={30} className="hover:text-blue-600 transition-colors duration-300" />
