@@ -12,7 +12,7 @@ const Navbar = () => {
   };
 
   return (
-    <div className="navbar flex items-center justify-between py-2 px-4 md:pr-7 gap-3">
+    <div className="navbar flex items-center justify-between pt-1 px-2 md:pr-5 gap-3">
       <div className="flex-1 flex items-center border border-gray-300 rounded-lg px-2 text-gray-700">
         <FiSearch size={24} className="text-[#9CA3AF] shrink-0 cursor-pointer" />
         <input
