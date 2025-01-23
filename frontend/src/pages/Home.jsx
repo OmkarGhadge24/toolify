@@ -8,7 +8,7 @@ const Home = () => {
     <div className="w-full flex-1 transition-all duration-300 bg-[#dadada] h-full overflow-hidden">
       <div className="bg-white w-full border-2 rounded-md border-[rgba(0,0,0,0.08)] h-full shadow-sm flex">
         <Menu isOpen={isOpen} setIsOpen={setIsOpen} />
-        <div className="w-full flex flex-col gap-4 bg-white border-2 rounded-md border-[rgba(0,0,0,0.08)] p-2">
+        <div className="w-full flex flex-col gap-4 bg-white border-2 rounded-md border-[rgba(0,0,0,0.08)]">
           <div className="w-full">
             <Navbar />
           </div>

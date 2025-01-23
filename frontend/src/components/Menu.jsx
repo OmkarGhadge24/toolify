@@ -9,35 +9,23 @@ import {
   FiFeather,
   FiPaperclip,
 } from "react-icons/fi";
+import { Link } from "react-router-dom";
 
 const Menu = ({ isOpen, setIsOpen }) => {
   const [activeDropdown, setActiveDropdown] = useState("");
 
   const navItems = [
-    { title: "Home", 
-      icon: FiHome, 
-      hasDropdown: false 
-    },
-    {
-      title: "Profile",
-      icon: FiUser,
-      hasDropdown: false,
-    },
+    { title: "Home", icon: FiHome, hasDropdown: false, route: "/" },
+    { title: "Profile", icon: FiUser, hasDropdown: false, route: "/profile" },
     {
       title: "Contact Us",
       icon: FiMessageSquare,
       hasDropdown: true,
+      route: "/contactus",
       dropdownItems: ["Email", "LinkedIn", "GitHub"],
     },
-    { title: "About Us", 
-      icon: FiFeather, 
-      hasDropdown: false 
-    },
-    {
-      title: "Others",
-      icon: FiPaperclip,
-      hasDropdown: false,
-    },
+    { title: "About Us", icon: FiFeather, hasDropdown: false, route: "/about" },
+    { title: "Others", icon: FiPaperclip, hasDropdown: false, route: "/others" },
   ];
 
   return (
@@ -71,47 +59,48 @@ const Menu = ({ isOpen, setIsOpen }) => {
         {navItems.map((item) => (
           <div key={item.title}>
             {/* Main Menu Item */}
-            <div
-              className="px-4 py-3 hover:bg-[#F3F5F7] cursor-pointer flex items-center justify-between"
-              onClick={() =>
-                item.hasDropdown && isOpen
-                  ? setActiveDropdown(
-                      activeDropdown === item.title ? "" : item.title
-                    )
-                  : null
-              }
-            >
-              <div className="flex items-center">
-                <item.icon size={20} strokeWidth={1.5} color="#000" />
-                <span
-                  className={`ml-4 whitespace-nowrap overflow-hidden transition-all duration-300 ${
-                    isOpen ? "w-32 opacity-100" : "w-0 opacity-0"
-                  }`}
-                >
-                  {item.title}
-                </span>
+            <Link to={item.route}>
+              <div
+                className="px-4 py-3 hover:bg-[#F3F5F7] cursor-pointer flex items-center justify-between"
+                onClick={() =>
+                  item.hasDropdown && isOpen
+                    ? setActiveDropdown(
+                        activeDropdown === item.title ? "" : item.title
+                      )
+                    : null
+                }
+              >
+                <div className="flex items-center">
+                  <item.icon size={20} strokeWidth={1.5} color="#000" />
+                  <span
+                    className={`ml-4 whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                      isOpen ? "w-32 opacity-100" : "w-0 opacity-0"
+                    }`}
+                  >
+                    {item.title}
+                  </span>
+                </div>
+                {item.hasDropdown && isOpen && (
+                  <FiChevronDown
+                    size={16}
+                    strokeWidth={1.5}
+                    className={`transition-transform duration-200 ${
+                      activeDropdown === item.title ? "rotate-180" : ""
+                    }`}
+                  />
+                )}
               </div>
-              {item.hasDropdown && isOpen && (
-                <FiChevronDown
-                  size={16}
-                  strokeWidth={1.5}
-                  className={`transition-transform duration-200 ${
-                    activeDropdown === item.title ? "rotate-180" : ""
-                  }`}
-                />
-              )}
-            </div>
+            </Link>
 
             {/* Dropdown Items */}
             {item.hasDropdown && isOpen && activeDropdown === item.title && (
               <div className="bg-[#f5f5f5] overflow-hidden transition-all duration-200">
                 {item.dropdownItems.map((dropdownItem) => (
-                  <div
-                    key={dropdownItem}
-                    className="px-11 py-2 hover:bg-[#f1f1f1] cursor-pointer text-sm"
-                  >
-                    {dropdownItem}
-                  </div>
+                  <Link to={item.route} key={dropdownItem}>
+                    <div className="px-11 py-2 hover:bg-[#f1f1f1] cursor-pointer text-sm">
+                      {dropdownItem}
+                    </div>
+                  </Link>
                 ))}
               </div>
             )}
