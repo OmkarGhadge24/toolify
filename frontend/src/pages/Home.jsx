@@ -22,7 +22,7 @@ const Home = () => {
         <div className="w-full flex flex-col gap-4 bg-white border-2 rounded-md border-[rgba(0,0,0,0.08)] p-2">
           {location.pathname === "/" && <Navbar />}
           
-          <div className="w-full flex-grow bg-slate-200 rounded-md p-4">
+          <div className="w-full flex-grow rounded-md p-4 overflow-y-auto">
             <Routes>
               <Route path="/" element={<Main />} />
               <Route path="/profile" element={<Profile />} />
