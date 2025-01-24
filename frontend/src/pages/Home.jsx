@@ -12,20 +12,25 @@ const Home = () => {
   const [isOpen, setIsOpen] = useState(true);
   const location = useLocation();
 
+  const user = {
+    isLoggedIn: true,
+    name: "John Doe",
+    email: "johndoe@example.com",
+    gender: "male",
+  };
+
   return (
     <div className="w-full flex-1 transition-all duration-300 bg-[#dadada] h-full overflow-hidden">
       <div className="bg-white w-full border-2 rounded-md border-[rgba(0,0,0,0.08)] h-full shadow-sm flex">
-        {/* Sidebar */}
         <Menu isOpen={isOpen} setIsOpen={setIsOpen} />
         
-        {/* Main Content */}
         <div className="w-full flex flex-col gap-4 bg-white border-2 rounded-md border-[rgba(0,0,0,0.08)] p-2">
           {location.pathname === "/" && <Navbar />}
           
           <div className="w-full flex-grow rounded-md p-4 overflow-y-auto">
             <Routes>
               <Route path="/" element={<Main />} />
-              <Route path="/profile" element={<Profile />} />
+              <Route path="/profile" element={< Profile user={user} />} />
               <Route path="/contactus" element={<ContactUs />} />
               <Route path="/about" element={<About />} />
               <Route path="/others" element={<Others />} />

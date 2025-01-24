@@ -13,7 +13,6 @@ const ContactUs = () => {
 
   const [errors, setErrors] = useState({});
 
-  // Form validation function
   const validateForm = () => {
     const newErrors = {};
     if (!formData.name) newErrors.name = "Name is required.";
@@ -34,7 +33,6 @@ const ContactUs = () => {
     if (validateForm()) {
       // Make API call to send form data to backend
       console.log("Form submitted successfully", formData);
-      // Reset form after submission
       setFormData({
         name: "",
         age: "",
