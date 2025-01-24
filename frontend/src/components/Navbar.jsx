@@ -1,65 +1,78 @@
-import React, { useState } from "react";
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { FiSearch } from "react-icons/fi";
-import { FaUserCircle } from "react-icons/fa";
-import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
-import { Link } from "react-router-dom";
+import { FaUserCircle } from 'react-icons/fa';
+import { Popover } from "@headlessui/react";
 
-const Navbar = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+const Navbar = ({ isAuthenticated, setIsAuthenticated }) => {
+    const navigate = useNavigate();
 
-  const handleLoginLogout = () => {
-    setIsLoggedIn(!isLoggedIn);
-  };
+    const handleLogout = async () => {
+        try {
+            await axios.post('http://localhost:5000/api/auth/logout', {}, {
+                withCredentials: true
+            });
+            setIsAuthenticated(false);
+            navigate('/login');
+        } catch (error) {
+            console.error('Logout failed:', error);
+        }
+    };
 
-  return (
-    <div className="navbar flex items-center justify-between pt-1 px-2 md:pr-5 gap-3">
-      <div className="flex-1 flex items-center border border-gray-300 rounded-lg px-2 text-gray-700">
-        <FiSearch size={24} className="text-[#9CA3AF] shrink-0 cursor-pointer" />
-        <input
-          type="text"
-          placeholder="Search..."
-          className="p-2 focus:outline-none w-full"
-        />
-      </div>
-      <div className="shrink-0">
-        {!isLoggedIn ? (
-          <button
-            className="px-4 py-1 bg-blue-500 text-md text-white rounded-md hover:bg-blue-600 transition"
-            onClick={handleLoginLogout}
-          >
-            Login
-          </button>
-        ) : (
-          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden flex items-center justify-center cursor-pointer">
-            <Popover className="relative">
-              <PopoverButton className="flex text-[#3B40E8] items-center justify-center text-3xl md:text-4xl">
-                <FaUserCircle />
-              </PopoverButton>
-              <PopoverPanel
-                anchor="bottom"
-                className="flex flex-col bg-[#D1D1D1] opacity-70 mt-2 items-start rounded-md shadow-md"
-              >
-                <div className="flex flex-col space-y-1 p-1 md:p-2 text-sm md:text-base">
-                  <Link
-                    to="/profile"
-                    className="hover:bg-[#B6B6B6] px-2 md:px-3 py-1 rounded-md transition-colors"
-                  >
-                    Profile
-                  </Link>
-                  <Link
-                    to="/"
-                    className="hover:bg-[#B6B6B6] px-2 md:px-3 py-1 rounded-md transition-colors"
-                  >
-                    Logout
-                  </Link>
+    return (
+        <nav className="bg-white">
+            <div className="mx-auto px-2 md:px-4">
+                <div className="flex items-center justify-between h-16">
+                    {/* Search Bar */}
+                    <div className="flex-1 mx-4">
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <FiSearch className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Search..."
+                                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 sm:text-sm"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Auth Button */}
+                    <div className="flex items-center">
+                        {isAuthenticated ? (
+                            <Popover className="relative">
+                                <Popover.Button className="flex text-gray-600 hover:text-gray-900">
+                                    <FaUserCircle className="h-8 w-8" />
+                                </Popover.Button>
+                                <Popover.Panel className="absolute right-0 z-10 mt-2 w-48 rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
+                                    <Link
+                                        to="/profile"
+                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    >
+                                        Profile
+                                    </Link>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    >
+                                        Logout
+                                    </button>
+                                </Popover.Panel>
+                            </Popover>
+                        ) : (
+                            <Link
+                                to="/login"
+                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                            >
+                                Login
+                            </Link>
+                        )}
+                    </div>
                 </div>
-              </PopoverPanel>
-            </Popover>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+            </div>
+        </nav>
+    );
 };
 
 export default Navbar;

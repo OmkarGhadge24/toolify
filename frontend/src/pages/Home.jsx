@@ -1,23 +1,21 @@
-import React, { useState } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import Menu from "../components/Menu";
-import Navbar from "./../components/Navbar";
-import Main from "../components/Main";
-import About from "../components/About";
+import Navbar from "../components/Navbar";
 import Profile from "../components/Profile";
+import About from "../components/About";
 import ContactUs from "../components/ContactUs";
 import Others from "../components/Others";
+import Main from "../components/Main";
 
-const Home = () => {
+const Home = ({ isAuthenticated, setIsAuthenticated }) => {
   const [isOpen, setIsOpen] = useState(true);
   const location = useLocation();
 
-  const user = {
-    isLoggedIn: true,
-    name: "John Doe",
-    email: "johndoe@example.com",
-    gender: "male",
-  };
+  // Redirect to login if not authenticated
+  if (!isAuthenticated && location.pathname !== '/login' && location.pathname !== '/signup') {
+    return <Navigate to="/login" />;
+  }
 
   return (
     <div className="w-full flex-1 transition-all duration-300 bg-[#dadada] h-full overflow-hidden">
@@ -25,12 +23,12 @@ const Home = () => {
         <Menu isOpen={isOpen} setIsOpen={setIsOpen} />
         
         <div className="w-full flex flex-col gap-4 bg-white border-2 rounded-md border-[rgba(0,0,0,0.08)] p-2">
-          {location.pathname === "/" && <Navbar />}
+          <Navbar isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
           
           <div className="w-full flex-grow rounded-md p-4 overflow-y-auto">
             <Routes>
               <Route path="/" element={<Main />} />
-              <Route path="/profile" element={< Profile user={user} />} />
+              <Route path="/profile" element={<Profile isAuthenticated={isAuthenticated} />} />
               <Route path="/contactus" element={<ContactUs />} />
               <Route path="/about" element={<About />} />
               <Route path="/others" element={<Others />} />
