@@ -66,7 +66,7 @@ const Profile = ({ isAuthenticated }) => {
                 ? "/images/male.png"
                 : userData?.gender === "female"
                 ? "/images/female.png"
-                : "/images/others.png"
+                : "/images/other.png"
             }
             alt="Profile"
             className="w-full h-full object-cover"
