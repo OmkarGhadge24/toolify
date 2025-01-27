@@ -11,7 +11,8 @@ router.post("/", async (req, res) => {
     await newContact.save();
     res.status(201).json({ message: "Form submitted successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Failed to submit form", error });
+    console.error("Error saving contact:", error);
+    res.status(500).json({ message: "Failed to submit form", error: error.message });
   }
 });
 

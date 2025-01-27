@@ -28,18 +28,37 @@ const ContactUs = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
-      // Make API call to send form data to backend
-      console.log("Form submitted successfully", formData);
-      setFormData({
-        name: "",
-        age: "",
-        country: "",
-        email: "",
-        description: "",
-      });
+      try {
+        const response = await fetch("http://localhost:5000/api/contacts", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to submit form");
+        }
+
+        const data = await response.json();
+        alert("Form submitted successfully!");
+        
+        // Reset form
+        setFormData({
+          name: "",
+          age: "",
+          country: "",
+          email: "",
+          description: "",
+        });
+      } catch (error) {
+        alert("Failed to submit form. Please try again.");
+        console.error("Error submitting form:", error);
+      }
     }
   };
 
