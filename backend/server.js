@@ -19,9 +19,11 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 const contactRoutes = require("./routes/contactRoutes");
 const authRoutes = require("./routes/authRoutes");
+const backgroundRemoverRoutes = require("./routes/backgroundRemover");
 
 app.use("/api/contacts", contactRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api", backgroundRemoverRoutes);
 
 // MongoDB Connection
 const connectDB = async () => {
