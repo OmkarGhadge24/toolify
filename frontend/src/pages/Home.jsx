@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Menu from "../components/Menu";
 import Navbar from "../components/Navbar";
 import Profile from "../components/Profile";
@@ -10,7 +10,6 @@ import Main from "../components/Main";
 
 const Home = ({ isAuthenticated, setIsAuthenticated }) => {
   const [isOpen, setIsOpen] = useState(true);
-  const location = useLocation();
 
   return (
     <div className="w-full flex-1 transition-all duration-300 bg-[#dadada] h-full overflow-hidden">

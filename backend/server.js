@@ -20,10 +20,12 @@ app.use(express.urlencoded({ extended: true }));
 const contactRoutes = require("./routes/contactRoutes");
 const authRoutes = require("./routes/authRoutes");
 const backgroundRemoverRoutes = require("./routes/backgroundRemover");
+const ocrRoutes = require("./routes/textExtractorRoutes");
 
 app.use("/api/contacts", contactRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api", backgroundRemoverRoutes);
+app.use("/api", ocrRoutes);
 
 // MongoDB Connection
 const connectDB = async () => {
@@ -75,39 +77,14 @@ app.get("/others", (req, res) => {
   res.send("Others page - Backend");
 });
 
-// Function to find an available port
-const findAvailablePort = async (startPort) => {
-  const net = require('net');
-  return new Promise((resolve, reject) => {
-    const server = net.createServer();
-    server.unref();
-    server.on('error', () => {
-      resolve(findAvailablePort(startPort + 1));
-    });
-    server.listen(startPort, () => {
-      server.close(() => {
-        resolve(startPort);
-      });
-    });
-  });
-};
-
 // Start the server
-const startServer = async () => {
-  try {
-    const PORT = await findAvailablePort(process.env.PORT || 5000);
-    const server = app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
-
-    server.on('error', (err) => {
-      console.error('Server error:', err);
-      process.exit(1);
-    });
-  } catch (err) {
-    console.error('Error starting server:', err);
-    process.exit(1);
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+}).on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use. Please stop other processes using this port.`);
+  } else {
+    console.error('Server error:', err);
   }
-};
-
-startServer();
+});
