@@ -1,30 +1,20 @@
 import React from 'react';
-import { FaArrowRight } from 'react-icons/fa';
 
-const ConverterCard = ({ icon: Icon, title, description, fromFormat, toFormat, onClick, isActive = true }) => {
+const ConverterCard = ({ converter, onClick }) => {
+  const Icon = converter.icon;
+  
   return (
     <div
-      onClick={isActive ? onClick : undefined}
-      className={`bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 ${
-        isActive ? 'cursor-pointer transform hover:-translate-y-1' : 'opacity-50 cursor-not-allowed'
-      }`}
+      className="bg-white rounded-lg shadow-md p-6 cursor-pointer transition-transform hover:scale-105"
+      onClick={onClick}
     >
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-4">
-          <div className="p-3 rounded-lg bg-blue-50">
-            <Icon className="text-2xl text-blue-600" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
-            <div className="flex items-center text-sm text-gray-500 mt-1">
-              <span>{fromFormat}</span>
-              <FaArrowRight className="mx-2" />
-              <span>{toFormat}</span>
-            </div>
-          </div>
+      <div className="flex items-center mb-4">
+        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+          <Icon className="w-6 h-6 text-blue-600" />
         </div>
+        <h3 className="text-lg font-semibold">{converter.title}</h3>
       </div>
-      <p className="text-gray-600 text-sm">{description}</p>
+      <p className="text-gray-600 text-sm">{converter.description}</p>
     </div>
   );
 };

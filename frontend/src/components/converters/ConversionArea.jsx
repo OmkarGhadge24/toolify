@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { FaFileUpload, FaSpinner, FaExclamationTriangle, FaTimes, FaTrash } from 'react-icons/fa';
 
-const ConversionArea = ({ fromFormat, toFormat, onConvert, onBack, allowMultiple = false }) => {
+const ConversionArea = ({ converter, onConvert }) => {
   const [files, setFiles] = useState([]);
   const [converting, setConverting] = useState(false);
   const [error, setError] = useState(null);
@@ -9,12 +9,14 @@ const ConversionArea = ({ fromFormat, toFormat, onConvert, onBack, allowMultiple
   const fileInputRef = useRef(null);
 
   const validateFile = (file) => {
+    // For ZIP creation, accept all files
+    if (converter.fromFormat === 'FILES') return true;
+
     const extension = file.name.split('.').pop().toLowerCase();
-    const expectedExt = fromFormat.toLowerCase();
+    const expectedExt = converter.fromFormat.toLowerCase();
     
-    if (fromFormat === 'FILES') return true; // Skip validation for ZIP creation
     if (extension !== expectedExt) {
-      setError(`Invalid file format. Expected ${fromFormat} file but received .${extension}`);
+      setError(`Invalid file format. Expected ${converter.fromFormat} file but received .${extension}`);
       return false;
     }
     return true;
@@ -23,7 +25,7 @@ const ConversionArea = ({ fromFormat, toFormat, onConvert, onBack, allowMultiple
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
     if (selectedFiles.length > 0) {
-      if (!allowMultiple) {
+      if (!converter.allowMultiple) {
         if (validateFile(selectedFiles[0])) {
           setFiles([selectedFiles[0]]);
           setError(null);
@@ -50,7 +52,7 @@ const ConversionArea = ({ fromFormat, toFormat, onConvert, onBack, allowMultiple
     setDragOver(false);
     const droppedFiles = Array.from(e.dataTransfer.files);
     if (droppedFiles.length > 0) {
-      if (!allowMultiple) {
+      if (!converter.allowMultiple) {
         if (validateFile(droppedFiles[0])) {
           setFiles([droppedFiles[0]]);
           setError(null);
@@ -83,34 +85,31 @@ const ConversionArea = ({ fromFormat, toFormat, onConvert, onBack, allowMultiple
     
     try {
       await onConvert(files);
-      if (!allowMultiple) {
+      if (!converter.allowMultiple) {
         clearFiles();
       }
     } catch (error) {
-      setError(error.message);
+      console.error('Conversion error:', error);
+      setError(error.message || 'Conversion failed');
     } finally {
       setConverting(false);
     }
   };
 
+  // Get the accept string for file input
+  const getAcceptTypes = () => {
+    if (converter.fromFormat === 'FILES') return '*/*';
+    return `.${converter.fromFormat.toLowerCase()}`;
+  };
+
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <button
-        onClick={onBack}
-        className="mb-6 text-blue-600 hover:text-blue-800 flex items-center"
-      >
-        ← Back to converters
-      </button>
-
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-gray-800">
-          {allowMultiple ? 'Create ZIP Archive' : `Convert ${fromFormat} to ${toFormat}`}
+          {converter.title}
         </h2>
         <p className="text-gray-600 mt-2">
-          {allowMultiple 
-            ? 'Select multiple files to create a ZIP archive'
-            : `Select your ${fromFormat.toLowerCase()} file to convert to ${toFormat.toLowerCase()}`
-          }
+          {converter.description}
         </p>
       </div>
 
@@ -150,8 +149,8 @@ const ConversionArea = ({ fromFormat, toFormat, onConvert, onBack, allowMultiple
           className="hidden"
           id="file-input"
           ref={fileInputRef}
-          multiple={allowMultiple}
-          accept={allowMultiple ? "*" : `.${fromFormat.toLowerCase()}`}
+          multiple={converter.allowMultiple}
+          accept={getAcceptTypes()}
         />
         <label
           htmlFor="file-input"
@@ -163,9 +162,9 @@ const ConversionArea = ({ fromFormat, toFormat, onConvert, onBack, allowMultiple
           <span className="text-gray-600">
             {files.length > 0
               ? 'Click to add more files'
-              : allowMultiple
+              : converter.allowMultiple
                 ? 'Click to select files or drag and drop them here'
-                : `Click to select a ${fromFormat} file or drag and drop it here`
+                : `Click to select a ${converter.fromFormat} file or drag and drop it here`
             }
           </span>
         </label>

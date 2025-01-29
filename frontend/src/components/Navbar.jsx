@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FiSearch } from "react-icons/fi";
@@ -7,6 +7,58 @@ import { Popover } from "@headlessui/react";
 
 const Navbar = ({ isAuthenticated, setIsAuthenticated }) => {
     const navigate = useNavigate();
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [showResults, setShowResults] = useState(false);
+
+    // List of available tools only
+    const tools = [
+        { 
+            name: "Background Remover", 
+            route: "/background-remover", 
+            keywords: ["background", "remove", "image", "photo", "picture", "bg"],
+            description: "Remove background from images"
+        },
+        { 
+            name: "Text Extractor", 
+            route: "/text-extractor", 
+            keywords: ["text", "extract", "ocr", "scan", "read", "document"],
+            description: "Extract text from images and documents"
+        },
+        { 
+            name: "File Converter", 
+            route: "/file-converter", 
+            keywords: ["convert", "file", "format", "change", "transform", "type"],
+            description: "Convert files between different formats"
+        }
+    ];
+
+    const handleSearch = (e) => {
+        const query = e.target.value.toLowerCase();
+        setSearchQuery(query);
+
+        if (query.trim() === '') {
+            setShowResults(false);
+            return;
+        }
+
+        // Search through tools
+        const results = tools.filter(tool => {
+            return (
+                tool.name.toLowerCase().includes(query) ||
+                tool.keywords.some(keyword => keyword.includes(query))
+            );
+        });
+
+        setSearchResults(results);
+        setShowResults(true);
+    };
+
+    const handleResultClick = (route) => {
+        setSearchQuery('');
+        setShowResults(false);
+        navigate(route);
+    };
 
     const handleLogout = async () => {
         try {
@@ -32,9 +84,31 @@ const Navbar = ({ isAuthenticated, setIsAuthenticated }) => {
                             </div>
                             <input
                                 type="text"
-                                placeholder="Search..."
+                                value={searchQuery}
+                                onChange={handleSearch}
+                                placeholder="Search tools..."
                                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 sm:text-sm"
                             />
+                            
+                            {/* Search Results Dropdown */}
+                            {showResults && searchResults.length > 0 && (
+                                <div className="absolute mt-1 w-full bg-white rounded-md shadow-lg max-h-60 overflow-auto z-50">
+                                    {searchResults.map((result, index) => (
+                                        <div
+                                            key={index}
+                                            onClick={() => handleResultClick(result.route)}
+                                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                        >
+                                            <div className="text-sm font-medium text-gray-900">
+                                                {result.name}
+                                            </div>
+                                            <div className="text-xs text-gray-500">
+                                                {result.description}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -63,7 +137,7 @@ const Navbar = ({ isAuthenticated, setIsAuthenticated }) => {
                         ) : (
                             <Link
                                 to="/login"
-                                className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                className="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
                             >
                                 Login
                             </Link>

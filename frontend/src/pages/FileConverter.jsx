@@ -1,125 +1,125 @@
 import React, { useState } from 'react';
-import { FaFilePdf, FaFileWord, FaFileImage, FaFileExcel, FaFileAlt, FaFilePowerpoint, FaFileArchive } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import ConverterCard from '../components/converters/ConverterCard';
 import ConversionArea from '../components/converters/ConversionArea';
-import { useNavigate } from 'react-router-dom';
+import { FaFileImage, FaFileWord, FaFilePdf, FaFilePowerpoint, FaFileExcel, FaFileArchive } from 'react-icons/fa';
 import { FaArrowLeft } from 'react-icons/fa';
 
+// List of supported converters
 const converters = [
   // PDF Conversions
+  {
+    id: 'pdf-to-docx',
+    title: 'PDF to DOCX',
+    description: 'Convert PDF files to editable Word documents',
+    fromFormat: 'PDF',
+    toFormat: 'DOCX',
+    allowMultiple: false,
+    icon: FaFileWord
+  },
   {
     id: 'pdf-to-jpg',
     title: 'PDF to JPG',
     description: 'Convert PDF pages to JPG images',
-    icon: FaFileImage,
     fromFormat: 'PDF',
     toFormat: 'JPG',
-    isActive: true,
-  },
-  {
-    id: 'pdf-to-word',
-    title: 'PDF to Word',
-    description: 'Convert PDF files to editable Word documents',
-    icon: FaFileWord,
-    fromFormat: 'PDF',
-    toFormat: 'DOCX',
-    isActive: true,
+    allowMultiple: false,
+    icon: FaFileImage
   },
   {
     id: 'pdf-to-pptx',
-    title: 'PDF to PowerPoint',
+    title: 'PDF to PPTX',
     description: 'Convert PDF files to PowerPoint presentations',
-    icon: FaFilePowerpoint,
     fromFormat: 'PDF',
     toFormat: 'PPTX',
-    isActive: true,
+    allowMultiple: false,
+    icon: FaFilePowerpoint
   },
   {
     id: 'pdf-to-excel',
     title: 'PDF to Excel',
     description: 'Convert PDF files to Excel spreadsheets',
-    icon: FaFileExcel,
     fromFormat: 'PDF',
     toFormat: 'XLSX',
-    isActive: true,
+    allowMultiple: false,
+    icon: FaFileExcel
   },
   // Word Conversions
   {
-    id: 'word-to-pdf',
-    title: 'Word to PDF',
-    description: 'Convert Word documents to PDF format',
-    icon: FaFilePdf,
+    id: 'docx-to-pdf',
+    title: 'DOCX to PDF',
+    description: 'Convert Word documents to PDF files',
     fromFormat: 'DOCX',
     toFormat: 'PDF',
-    isActive: true,
+    allowMultiple: false,
+    icon: FaFilePdf
   },
   // PowerPoint Conversions
   {
     id: 'pptx-to-pdf',
     title: 'PowerPoint to PDF',
     description: 'Convert PowerPoint presentations to PDF',
-    icon: FaFilePdf,
     fromFormat: 'PPTX',
     toFormat: 'PDF',
-    isActive: true,
+    allowMultiple: false,
+    icon: FaFilePdf
   },
   // Excel Conversions
   {
     id: 'excel-to-pdf',
     title: 'Excel to PDF',
     description: 'Convert Excel spreadsheets to PDF format',
-    icon: FaFilePdf,
     fromFormat: 'XLSX',
     toFormat: 'PDF',
-    isActive: true,
+    allowMultiple: false,
+    icon: FaFilePdf
   },
   // Image Conversions
   {
     id: 'jpg-to-png',
     title: 'JPG to PNG',
     description: 'Convert JPG images to PNG format',
-    icon: FaFileImage,
     fromFormat: 'JPG',
     toFormat: 'PNG',
-    isActive: true,
+    allowMultiple: false,
+    icon: FaFileImage
   },
   {
     id: 'png-to-jpg',
     title: 'PNG to JPG',
     description: 'Convert PNG images to JPG format',
-    icon: FaFileImage,
     fromFormat: 'PNG',
     toFormat: 'JPG',
-    isActive: true,
+    allowMultiple: false,
+    icon: FaFileImage
   },
   {
     id: 'webp-to-jpg',
     title: 'WebP to JPG',
     description: 'Convert WebP images to JPG format',
-    icon: FaFileImage,
     fromFormat: 'WEBP',
     toFormat: 'JPG',
-    isActive: true,
+    allowMultiple: false,
+    icon: FaFileImage
   },
   {
     id: 'webp-to-png',
     title: 'WebP to PNG',
     description: 'Convert WebP images to PNG format',
-    icon: FaFileImage,
     fromFormat: 'WEBP',
     toFormat: 'PNG',
-    isActive: true,
+    allowMultiple: false,
+    icon: FaFileImage
   },
   // Archive Creation
   {
-    id: 'files-to-zip',
+    id: 'create-zip',
     title: 'Create ZIP Archive',
-    description: 'Create a ZIP archive from multiple files',
-    icon: FaFileArchive,
+    description: 'Select multiple files to create a ZIP archive',
     fromFormat: 'FILES',
     toFormat: 'ZIP',
-    isActive: true,
-    allowMultiple: true,  // Special flag for ZIP conversion
+    allowMultiple: true,
+    icon: FaFileArchive
   }
 ];
 
@@ -149,7 +149,7 @@ const FileConverter = () => {
 
     const formData = new FormData();
     
-    // Handle multiple files for ZIP conversion
+    // Handle multiple files for ZIP creation
     if (selectedConverter.allowMultiple) {
       files.forEach(file => {
         formData.append('Files', file);
@@ -228,22 +228,30 @@ const FileConverter = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <button
-        onClick={() => navigate('/')}
-        className="mb-4 flex items-center text-gray-600 hover:text-gray-800"
-      >
-        <FaArrowLeft className="mr-2" /> Back to Tools
-      </button>
-      
-      {!selectedConverter ? (
+    <div className="container mx-auto px-4 py-8">
+      {selectedConverter ? (
         <div>
-          <h1 className="text-2xl font-bold mb-6">File Converter</h1>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <button
+            onClick={() => setSelectedConverter(null)}
+            className="flex items-center text-blue-600 hover:text-blue-800 mb-4"
+          >
+            <FaArrowLeft className="mr-2" />
+            Back to Converters
+          </button>
+          <ConversionArea
+            converter={selectedConverter}
+            onConvert={handleConvert}
+            allowMultiple={selectedConverter.allowMultiple}
+          />
+        </div>
+      ) : (
+        <div>
+          <h1 className="text-3xl font-bold mb-8 text-center">File Converter</h1>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {converters.map((converter) => (
               <ConverterCard
                 key={converter.id}
-                {...converter}
+                converter={converter}
                 onClick={() => {
                   setSelectedConverter(converter);
                   setSelectedFiles([]);
@@ -252,17 +260,6 @@ const FileConverter = () => {
             ))}
           </div>
         </div>
-      ) : (
-        <ConversionArea
-          fromFormat={selectedConverter.fromFormat}
-          toFormat={selectedConverter.toFormat}
-          onBack={() => {
-            setSelectedConverter(null);
-            setSelectedFiles([]);
-          }}
-          onConvert={handleConvert}
-          allowMultiple={selectedConverter.allowMultiple}
-        />
       )}
     </div>
   );

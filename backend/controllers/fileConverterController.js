@@ -1,59 +1,71 @@
 const path = require('path');
-const fs = require('fs').promises;
+const fs = require('fs');
+const fsPromises = require('fs').promises;
 const multer = require('multer');
-const { convertDocument, getExtensionForFormat, isFormatSupported, createZipArchive } = require('../utils/converter');
+const converter = require('../utils/converter');
 
-// Configure multer for file upload
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
-});
-
-// Helper function to create temp directory if it doesn't exist
+// Ensure temp directory exists
 const ensureTempDir = async () => {
   const tempDir = path.join(__dirname, '../temp');
   try {
-    await fs.access(tempDir);
+    await fsPromises.access(tempDir);
   } catch {
-    await fs.mkdir(tempDir, { recursive: true });
+    await fsPromises.mkdir(tempDir, { recursive: true });
   }
   return tempDir;
 };
 
-// Helper function to clean up temp files
+// Cleanup temp files
 const cleanupTempFiles = async (...files) => {
   for (const file of files) {
     try {
-      if (file && await fs.access(file).then(() => true).catch(() => false)) {
-        await fs.unlink(file);
-      }
+      await fsPromises.unlink(file);
     } catch (error) {
-      console.error(`Error cleaning up temp file ${file}:`, error);
+      console.error(`Error deleting temp file ${file}:`, error);
     }
   }
 };
 
+// Configure multer for file upload
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  }
+});
+
+// Handle file conversion
 exports.convertFile = async (req, res) => {
-  const { fromFormat, toFormat } = req.body;
   const tempFiles = [];
+  let tempDir;
 
   try {
-    if (!fromFormat || !toFormat) {
-      throw new Error('From format and to format are required');
-    }
-
-    // Validate formats
-    if (!isFormatSupported(fromFormat) || !isFormatSupported(toFormat)) {
-      throw new Error('Unsupported format');
-    }
-
     // Ensure temp directory exists
-    const tempDir = await ensureTempDir();
+    tempDir = await ensureTempDir();
+
+    const { fromFormat, toFormat } = req.body;
+    
+    if (!fromFormat || !toFormat) {
+      throw new Error('From and To formats are required');
+    }
+
+    // Validate formats are supported
+    if (!converter.isFormatSupported(fromFormat)) {
+      throw new Error(`Unsupported input format: ${fromFormat}`);
+    }
+    if (!converter.isFormatSupported(toFormat)) {
+      throw new Error(`Unsupported output format: ${toFormat}`);
+    }
+
+    // Check if conversion is supported
+    if (!converter.isConversionSupported(fromFormat, toFormat)) {
+      throw new Error(`Conversion from ${fromFormat} to ${toFormat} is not supported`);
+    }
 
     // Special handling for ZIP archive creation
     if (fromFormat === 'FILES' && toFormat === 'ZIP') {
-      if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
-        throw new Error('Multiple files are required for ZIP archive creation');
+      if (!req.files || !Array.isArray(req.files) || req.files.length < 2) {
+        throw new Error('At least two files are required for ZIP archive creation');
       }
 
       // Create output path for ZIP
@@ -61,8 +73,8 @@ exports.convertFile = async (req, res) => {
       tempFiles.push(outputPath);
 
       try {
-        // Create ZIP archive by passing raw files
-        const result = await createZipArchive(req.files, outputPath);
+        // Create ZIP archive
+        const result = await converter.createZipArchive(req.files, outputPath);
         
         // Send ZIP file
         res.download(result.filePath, 'archive.zip', async (err) => {
@@ -76,61 +88,44 @@ exports.convertFile = async (req, res) => {
         });
       } catch (error) {
         console.error('ZIP creation error:', error);
-        if (!res.headersSent) {
-          res.status(500).json({ error: error.message });
-        }
-        await cleanupTempFiles(...tempFiles);
+        throw new Error('Failed to create ZIP archive');
       }
       return;
     }
 
-    // Handle regular file conversion
+    // Handle single file conversions
     if (!req.file) {
       throw new Error('No file uploaded');
     }
 
-    // Validate file format matches fromFormat
-    const fileExt = path.extname(req.file.originalname).toLowerCase().substring(1);
-    const expectedExt = getExtensionForFormat(fromFormat).toLowerCase().substring(1);
-    if (fileExt !== expectedExt) {
-      throw new Error(`Invalid file format. Expected ${fromFormat} file but received .${fileExt}`);
+    // Validate file extension
+    const fileExt = path.extname(req.file.originalname).slice(1).toLowerCase();
+    if (fileExt !== fromFormat.toLowerCase()) {
+      throw new Error(`Invalid file format. Expected ${fromFormat} but received ${fileExt}`);
     }
 
-    // Save uploaded file
-    const inputPath = path.join(tempDir, `input_${Date.now()}_${req.file.originalname}`);
-    await fs.writeFile(inputPath, req.file.buffer);
-    tempFiles.push(inputPath);
-
-    // Special handling for PDF to JPG conversion
-    if (fromFormat === 'PDF' && toFormat === 'JPG') {
-      const result = await convertDocument(inputPath, null, fromFormat, toFormat);
-      
-      // Create a response with all JPG files
-      const responseFiles = await Promise.all(result.files.map(async (file) => {
-        const fileData = await fs.readFile(file.filePath);
-        tempFiles.push(file.filePath);
-        return {
-          fileName: file.fileName,
-          data: fileData.toString('base64'),
-          fileSize: file.fileSize
-        };
-      }));
-
-      res.json({ files: responseFiles });
-      await cleanupTempFiles(...tempFiles);
-      return;
-    }
-
-    // Regular conversion
-    const outputPath = path.join(tempDir, `output_${Date.now()}_${req.file.originalname}`);
-    tempFiles.push(outputPath);
+    // Create temp file paths
+    const inputPath = path.join(tempDir, `input_${Date.now()}.${fileExt}`);
+    const outputPath = path.join(tempDir, `output_${Date.now()}.${toFormat.toLowerCase()}`);
+    tempFiles.push(inputPath, outputPath);
 
     try {
-      // Convert file
-      const result = await convertDocument(inputPath, outputPath, fromFormat, toFormat);
+      // Write uploaded file to temp location
+      await fsPromises.writeFile(inputPath, req.file.buffer);
+
+      // Special handling for PDF to Excel
+      if (fromFormat.toUpperCase() === 'PDF' && toFormat.toUpperCase() === 'XLSX') {
+        console.log('Converting PDF to Excel...');
+        console.log('Input file size:', req.file.size);
+        console.log('Input file path:', inputPath);
+      }
+
+      // Perform conversion
+      const result = await converter.convertFile(inputPath, outputPath, fromFormat, toFormat);
       
       // Send converted file
-      res.download(result.filePath, `converted${getExtensionForFormat(toFormat)}`, async (err) => {
+      const fileName = path.basename(req.file.originalname, path.extname(req.file.originalname));
+      res.download(result.filePath, `${fileName}.${toFormat.toLowerCase()}`, async (err) => {
         if (err) {
           console.error('Error sending file:', err);
           if (!res.headersSent) {
@@ -141,16 +136,17 @@ exports.convertFile = async (req, res) => {
       });
     } catch (error) {
       console.error('Conversion error:', error);
-      if (!res.headersSent) {
-        res.status(500).json({ error: error.message });
+      if (error.message.includes('password protected')) {
+        throw new Error('Cannot convert password-protected PDF files. Please remove the password protection and try again.');
+      } else if (error.message.includes('unrecognizable content')) {
+        throw new Error('The PDF content could not be properly extracted. The file might be scanned or contain complex formatting.');
       }
-      await cleanupTempFiles(...tempFiles);
+      throw new Error('File conversion failed: ' + error.message);
     }
-
   } catch (error) {
-    console.error('Conversion error:', error);
+    console.error('Controller error:', error);
     if (!res.headersSent) {
-      res.status(500).json({ error: error.message });
+      res.status(400).json({ error: error.message });
     }
     await cleanupTempFiles(...tempFiles);
   }

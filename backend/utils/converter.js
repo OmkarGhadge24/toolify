@@ -1,10 +1,7 @@
-const ConvertAPI = require('convertapi');
-const { promises: fs } = require('fs');
+const fs = require('fs').promises;
 const path = require('path');
+const ConvertAPI = require('convertapi')(process.env.CONVERT_API_SECRET);
 require('dotenv').config();
-
-// Initialize ConvertAPI with your secret
-const convertapi = new ConvertAPI(process.env.CONVERT_API_SECRET);
 
 // Format extensions mapping
 const FORMAT_EXTENSIONS = {
@@ -31,31 +28,21 @@ const CONVERT_API_FORMAT_MAP = {
   'PNG': 'png',
   'WEBP': 'webp',
   'PPTX': 'pptx',
-  'ZIP': 'zip'
+  'ZIP': 'zip',
+  'FILES': 'any'
 };
 
 // Supported conversion pairs
-const SUPPORTED_CONVERSIONS = [
-  // PDF Conversions
-  { from: 'PDF', to: 'DOCX' },
-  { from: 'PDF', to: 'XLSX' },
-  { from: 'PDF', to: 'PPTX' },
-  { from: 'PDF', to: 'JPG' },
-  
-  // Office to PDF
-  { from: 'DOCX', to: 'PDF' },
-  { from: 'XLSX', to: 'PDF' },
-  { from: 'PPTX', to: 'PDF' },
-  
-  // Image Conversions
-  { from: 'JPG', to: 'PNG' },
-  { from: 'PNG', to: 'JPG' },
-  { from: 'WEBP', to: 'JPG' },
-  { from: 'WEBP', to: 'PNG' },
-  
-  // Special Conversions
-  { from: 'FILES', to: 'ZIP' }
-];
+const SUPPORTED_CONVERSIONS = {
+  'PDF': ['DOCX', 'JPG', 'PPTX', 'XLSX'],
+  'DOCX': ['PDF'],
+  'PPTX': ['PDF'],
+  'XLSX': ['PDF'],
+  'JPG': ['PNG'],
+  'PNG': ['JPG'],
+  'WEBP': ['JPG', 'PNG'],
+  'FILES': ['ZIP']
+};
 
 // Helper function to get file extension for a format
 exports.getExtensionForFormat = (format) => {
@@ -67,133 +54,101 @@ exports.getExtensionForFormat = (format) => {
   return extension;
 };
 
-// Helper function to get ConvertAPI format
-const getConvertApiFormat = (format) => {
-  format = format.toUpperCase();
-  const apiFormat = CONVERT_API_FORMAT_MAP[format];
-  if (!apiFormat) {
-    throw new Error(`Unsupported format: ${format}`);
-  }
-  return apiFormat;
+// Helper function to check if format is supported
+exports.isFormatSupported = (format) => {
+  return format.toUpperCase() === 'FILES' || !!CONVERT_API_FORMAT_MAP[format.toUpperCase()];
 };
 
 // Helper function to check if conversion is supported
-const isConversionSupported = (fromFormat, toFormat) => {
-  return SUPPORTED_CONVERSIONS.some(
-    conv => conv.from === fromFormat.toUpperCase() && conv.to === toFormat.toUpperCase()
-  );
+exports.isConversionSupported = (fromFormat, toFormat) => {
+  fromFormat = fromFormat.toUpperCase();
+  toFormat = toFormat.toUpperCase();
+  return SUPPORTED_CONVERSIONS[fromFormat]?.includes(toFormat);
 };
 
-// Function to create ZIP archive from multiple files
+// Convert a file using ConvertAPI
+exports.convertFile = async (inputPath, outputPath, fromFormat, toFormat) => {
+  try {
+    const fromApiFormat = CONVERT_API_FORMAT_MAP[fromFormat.toUpperCase()];
+    const toApiFormat = CONVERT_API_FORMAT_MAP[toFormat.toUpperCase()];
+
+    if (!fromApiFormat || !toApiFormat) {
+      throw new Error('Unsupported format');
+    }
+
+    let params = { File: inputPath };
+
+    // Special handling for PDF to Excel conversion
+    if (fromFormat.toUpperCase() === 'PDF' && toFormat.toUpperCase() === 'XLSX') {
+      params = {
+        File: inputPath,
+        PageRange: '1-2000',
+        WorksheetName: 'Sheet1',
+        ParseOptions: JSON.stringify({
+          "ParseType": "Table",
+          "ExportHiddenContent": true,
+          "AutoDetectSeparators": true,
+          "RemoveEmptyRows": true,
+          "SkipPdfErrors": true
+        })
+      };
+    }
+
+    // Convert the file
+    console.log('Starting conversion with params:', JSON.stringify(params, null, 2));
+    const result = await ConvertAPI.convert(toApiFormat, params, fromApiFormat);
+
+    // Download the converted file
+    await result.file.save(outputPath);
+    console.log('Conversion completed successfully');
+
+    return {
+      filePath: outputPath,
+      fileSize: (await fs.stat(outputPath)).size
+    };
+  } catch (error) {
+    console.error('ConvertAPI Error:', error);
+    const errorResponse = error.response?.data;
+    const errorCode = errorResponse?.Code;
+    const errorMessage = errorResponse?.Message || error.message;
+
+    // Handle specific error codes
+    switch (errorCode) {
+      case 5001:
+        if (errorMessage.toLowerCase().includes('password')) {
+          throw new Error('The PDF file appears to be encrypted or password protected. Please provide an unprotected PDF.');
+        } else {
+          throw new Error('Unable to read the PDF content. The file might be corrupted or contain unsupported content.');
+        }
+      case 4000:
+        throw new Error('Invalid conversion parameters. Please try with a simpler PDF file.');
+      case 4001:
+        throw new Error('The PDF file might be too complex or contain unsupported elements.');
+      default:
+        if (errorMessage.toLowerCase().includes('timeout')) {
+          throw new Error('The conversion took too long. Please try with a smaller or simpler PDF file.');
+        } else {
+          throw new Error('Conversion failed: ' + (errorMessage || 'Unknown error'));
+        }
+    }
+  }
+};
+
+// Create a ZIP archive from multiple files
 exports.createZipArchive = async (files, outputPath) => {
   try {
-    console.log('Creating ZIP archive');
-    
-    // Validate input files
-    if (!files || files.length === 0) {
-      throw new Error('No files provided for ZIP archive');
-    }
-
-    // Create an array of file objects for ConvertAPI
-    const filePromises = files.map(async (file, index) => {
-      // Save file to temp location
-      const tempPath = path.join(path.dirname(outputPath), `temp_${index}_${file.originalname}`);
-      await fs.writeFile(tempPath, file.buffer);
-      return tempPath;
+    const result = await ConvertAPI.convert('zip', {
+      Files: files.map(file => file.buffer)
     });
 
-    const filePaths = await Promise.all(filePromises);
-
-    // Create ZIP archive using ConvertAPI exactly as in documentation
-    const result = await convertapi.convert('zip', {
-      Files: filePaths,
-      StoreFile: false,
-      CompressionLevel: 'NoCompression'
-    }, 'any');
-
-    // Save the ZIP file
     await result.file.save(outputPath);
 
-    // Cleanup temp files
-    for (const tempPath of filePaths) {
-      try {
-        await fs.unlink(tempPath);
-      } catch (error) {
-        console.error(`Error cleaning up temp file ${tempPath}:`, error);
-      }
-    }
-
-    return { filePath: outputPath };
+    return {
+      filePath: outputPath,
+      fileSize: (await fs.stat(outputPath)).size
+    };
   } catch (error) {
-    console.error('ZIP creation error:', error);
-    throw new Error(`ZIP archive creation failed: ${error.message}`);
+    console.error('ZIP Creation Error:', error);
+    throw new Error('Failed to create ZIP archive: ' + (error.message || 'Unknown error'));
   }
-};
-
-// Main conversion function using ConvertAPI
-exports.convertDocument = async (inputPath, outputPath, fromFormat, toFormat) => {
-  try {
-    console.log(`Converting from ${fromFormat} to ${toFormat}`);
-    
-    // Validate formats
-    if (!isConversionSupported(fromFormat, toFormat)) {
-      throw new Error(`Conversion from ${fromFormat} to ${toFormat} is not supported`);
-    }
-
-    // Ensure input file exists
-    try {
-      await fs.access(inputPath);
-    } catch (error) {
-      throw new Error(`Input file not found: ${inputPath}`);
-    }
-    
-    // Special handling for PDF to JPG conversion
-    if (fromFormat === 'PDF' && toFormat === 'JPG') {
-      const result = await convertapi.convert('jpg', {
-        File: inputPath,
-        StoreFile: false,
-        ImageQuality: 90,
-        ScaleImage: true,
-        ScaleProportions: true
-      }, 'pdf');
-      
-      // Save all JPG files locally
-      const files = await Promise.all(result.files.map(async (file, index) => {
-        const fileName = `page_${index + 1}.jpg`;
-        const filePath = path.join(path.dirname(inputPath), fileName);
-        await file.save(filePath);
-        
-        return {
-          fileName,
-          filePath,
-          fileSize: file.fileSize
-        };
-      }));
-      
-      return { files };
-    }
-    
-    // Regular conversion
-    const fromApiFormat = getConvertApiFormat(fromFormat);
-    const toApiFormat = getConvertApiFormat(toFormat);
-    
-    const result = await convertapi.convert(toApiFormat, {
-      File: inputPath,
-      StoreFile: false,
-      ImageQuality: 'better',
-      DocumentQuality: 'better'
-    }, fromApiFormat);
-
-    // Save the converted file
-    await result.file.save(outputPath);
-    return { filePath: outputPath };
-  } catch (error) {
-    console.error('Conversion error:', error);
-    throw new Error(`File conversion failed: ${error.message}`);
-  }
-};
-
-// Helper function to check if format is supported
-exports.isFormatSupported = (format) => {
-  return !!CONVERT_API_FORMAT_MAP[format.toUpperCase()];
 };
