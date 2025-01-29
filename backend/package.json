@@ -18,12 +18,20 @@
     "body-parser": "^1.20.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "docx": "^8.5.0",
     "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
     "express": "^4.21.2",
     "form-data": "^4.0.1",
+    "html-pdf-node": "^1.0.8",
     "jsonwebtoken": "^9.0.2",
+    "mammoth": "^1.9.0",
     "mongoose": "^8.9.5",
-    "multer": "^1.4.5-lts.1"
+    "multer": "^1.4.5-lts.1",
+    "pdf-lib": "^1.17.1",
+    "pdf2json": "^3.1.5",
+    "pdfkit": "^0.14.0",
+    "sharp": "^0.33.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"

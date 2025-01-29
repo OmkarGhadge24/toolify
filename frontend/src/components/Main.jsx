@@ -17,7 +17,7 @@ const tools = [
     description: 'Convert files between different formats',
     icon: FaFileUpload,
     route: '/file-converter',
-    active: false,
+    active: true,
   },
   {
     id: 'text-extractor',

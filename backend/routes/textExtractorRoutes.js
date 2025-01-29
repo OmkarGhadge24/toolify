@@ -35,7 +35,7 @@ const upload = multer({
     }
 });
 
-router.post('/extract-text', upload.single('file'), async (req, res) => {
+router.post('/text-extractor/extract-text', upload.single('file'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No file uploaded' });
@@ -43,7 +43,7 @@ router.post('/extract-text', upload.single('file'), async (req, res) => {
 
         const formData = new FormData();
         formData.append('image', fs.createReadStream(req.file.path));
-
+        
         const response = await axios.post('https://api.api-ninjas.com/v1/imagetotext', 
             formData,
             {

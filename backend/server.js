@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const cookieParser = require("cookie-parser");
+const path = require("path");
 
 dotenv.config();
 const app = express();
@@ -16,16 +17,24 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!require('fs').existsSync(uploadsDir)) {
+  require('fs').mkdirSync(uploadsDir);
+}
+
 // Routes
 const contactRoutes = require("./routes/contactRoutes");
 const authRoutes = require("./routes/authRoutes");
 const backgroundRemoverRoutes = require("./routes/backgroundRemover");
 const ocrRoutes = require("./routes/textExtractorRoutes");
+const fileConverterRoutes = require("./routes/fileConverterRoutes");
 
 app.use("/api/contacts", contactRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api", backgroundRemoverRoutes);
 app.use("/api", ocrRoutes);
+app.use("/api", fileConverterRoutes);
 
 // MongoDB Connection
 const connectDB = async () => {
