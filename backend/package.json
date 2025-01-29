@@ -16,6 +16,7 @@
     "axios": "^1.7.9",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.3",
+    "convertapi": "^1.15.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "docx": "^8.5.0",

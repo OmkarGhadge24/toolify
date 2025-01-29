@@ -1,17 +1,37 @@
-import React, { useState } from 'react';
-import { FaFileUpload, FaSpinner, FaExclamationTriangle } from 'react-icons/fa';
+import React, { useState, useRef } from 'react';
+import { FaFileUpload, FaSpinner, FaExclamationTriangle, FaTimes, FaTrash } from 'react-icons/fa';
 
-const ConversionArea = ({ fromFormat, toFormat, onConvert, onBack }) => {
-  const [file, setFile] = useState(null);
+const ConversionArea = ({ fromFormat, toFormat, onConvert, onBack, allowMultiple = false }) => {
+  const [files, setFiles] = useState([]);
   const [converting, setConverting] = useState(false);
   const [error, setError] = useState(null);
   const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const validateFile = (file) => {
+    const extension = file.name.split('.').pop().toLowerCase();
+    const expectedExt = fromFormat.toLowerCase();
+    
+    if (fromFormat === 'FILES') return true; // Skip validation for ZIP creation
+    if (extension !== expectedExt) {
+      setError(`Invalid file format. Expected ${fromFormat} file but received .${extension}`);
+      return false;
+    }
+    return true;
+  };
 
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setError(null);
+    const selectedFiles = Array.from(e.target.files);
+    if (selectedFiles.length > 0) {
+      if (!allowMultiple) {
+        if (validateFile(selectedFiles[0])) {
+          setFiles([selectedFiles[0]]);
+          setError(null);
+        }
+      } else {
+        setFiles(prev => [...prev, ...selectedFiles]);
+        setError(null);
+      }
     }
   };
 
@@ -28,21 +48,44 @@ const ConversionArea = ({ fromFormat, toFormat, onConvert, onBack }) => {
   const handleDrop = (e) => {
     e.preventDefault();
     setDragOver(false);
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile) {
-      setFile(droppedFile);
-      setError(null);
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    if (droppedFiles.length > 0) {
+      if (!allowMultiple) {
+        if (validateFile(droppedFiles[0])) {
+          setFiles([droppedFiles[0]]);
+          setError(null);
+        }
+      } else {
+        setFiles(prev => [...prev, ...droppedFiles]);
+        setError(null);
+      }
+    }
+  };
+
+  const removeFile = (index) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+    setError(null);
+  };
+
+  const clearFiles = () => {
+    setFiles([]);
+    setError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
   const handleConvert = async () => {
-    if (!file) return;
+    if (files.length === 0) return;
     
     setConverting(true);
     setError(null);
     
     try {
-      await onConvert(file);
+      await onConvert(files);
+      if (!allowMultiple) {
+        clearFiles();
+      }
     } catch (error) {
       setError(error.message);
     } finally {
@@ -61,30 +104,31 @@ const ConversionArea = ({ fromFormat, toFormat, onConvert, onBack }) => {
 
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-gray-800">
-          Convert {fromFormat} to {toFormat}
+          {allowMultiple ? 'Create ZIP Archive' : `Convert ${fromFormat} to ${toFormat}`}
         </h2>
         <p className="text-gray-600 mt-2">
-          Select your {fromFormat.toLowerCase()} file to convert to {toFormat.toLowerCase()}
+          {allowMultiple 
+            ? 'Select multiple files to create a ZIP archive'
+            : `Select your ${fromFormat.toLowerCase()} file to convert to ${toFormat.toLowerCase()}`
+          }
         </p>
       </div>
 
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <div className="flex items-center text-red-700 mb-2">
-            <FaExclamationTriangle className="mr-2" />
-            <span className="font-semibold">Conversion failed</span>
-          </div>
-          <p className="text-red-600 text-sm">{error}</p>
-          {error.includes('LibreOffice') && (
-            <a
-              href="https://www.libreoffice.org/download/download/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800 text-sm block mt-2"
+          <div className="flex items-center justify-between">
+            <div className="flex items-center text-red-700">
+              <FaExclamationTriangle className="mr-2" />
+              <span className="font-semibold">Error</span>
+            </div>
+            <button
+              onClick={() => setError(null)}
+              className="text-red-500 hover:text-red-700"
             >
-              Click here to download LibreOffice
-            </a>
-          )}
+              <FaTimes />
+            </button>
+          </div>
+          <p className="text-red-600 text-sm mt-2">{error}</p>
         </div>
       )}
 
@@ -95,54 +139,94 @@ const ConversionArea = ({ fromFormat, toFormat, onConvert, onBack }) => {
         className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors
           ${dragOver
             ? 'border-blue-500 bg-blue-50'
-            : 'border-gray-300 hover:border-blue-500'
+            : files.length > 0 
+              ? 'border-green-500 bg-green-50'
+              : 'border-gray-300 hover:border-blue-500'
           }`}
       >
         <input
           type="file"
-          accept={`.${fromFormat.toLowerCase()}`}
           onChange={handleFileChange}
           className="hidden"
-          id="file-upload"
+          id="file-input"
+          ref={fileInputRef}
+          multiple={allowMultiple}
+          accept={allowMultiple ? "*" : `.${fromFormat.toLowerCase()}`}
         />
         <label
-          htmlFor="file-upload"
-          className="cursor-pointer block"
+          htmlFor="file-input"
+          className="cursor-pointer flex flex-col items-center"
         >
-          <div className="flex flex-col items-center">
-            <div className={`p-4 rounded-full mb-4 ${
-              dragOver ? 'bg-blue-100' : 'bg-blue-50'
-            }`}>
-              <FaFileUpload className="text-4xl text-blue-600" />
-            </div>
-            <span className="text-gray-600">
-              {file ? file.name : `Click to upload ${fromFormat} file`}
-            </span>
-            <span className="text-sm text-gray-500 mt-2">
-              or drag and drop your file here
-            </span>
-          </div>
+          <FaFileUpload className={`text-4xl mb-4 ${
+            files.length > 0 ? 'text-green-500' : 'text-gray-400'
+          }`} />
+          <span className="text-gray-600">
+            {files.length > 0
+              ? 'Click to add more files'
+              : allowMultiple
+                ? 'Click to select files or drag and drop them here'
+                : `Click to select a ${fromFormat} file or drag and drop it here`
+            }
+          </span>
         </label>
       </div>
 
-      <button
-        onClick={handleConvert}
-        disabled={!file || converting}
-        className={`mt-6 w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors
-          ${!file || converting
-            ? 'bg-gray-400 cursor-not-allowed'
-            : 'bg-blue-600 hover:bg-blue-700'
-          }`}
-      >
-        {converting ? (
-          <span className="flex items-center justify-center">
-            <FaSpinner className="animate-spin mr-2" />
-            Converting...
-          </span>
-        ) : (
-          'Convert Now'
-        )}
-      </button>
+      {files.length > 0 && (
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-semibold text-gray-700">Selected Files:</h3>
+            <button
+              onClick={clearFiles}
+              className="text-red-500 hover:text-red-700 flex items-center"
+            >
+              <FaTrash className="mr-1" />
+              Clear All
+            </button>
+          </div>
+          <div className="space-y-2">
+            {files.map((file, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between p-2 bg-gray-50 rounded"
+              >
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">{file.name}</span>
+                  <span className="text-xs text-gray-400">
+                    ({(file.size / 1024).toFixed(1)} KB)
+                  </span>
+                </div>
+                <button
+                  onClick={() => removeFile(index)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-6">
+        <button
+          onClick={handleConvert}
+          disabled={files.length === 0 || converting}
+          className={`w-full py-2 px-4 rounded-lg ${
+            files.length === 0 || converting
+              ? 'bg-gray-300 cursor-not-allowed'
+              : 'bg-blue-500 hover:bg-blue-600'
+          } text-white font-semibold flex items-center justify-center`}
+        >
+          {converting ? (
+            <>
+              <FaSpinner className="animate-spin mr-2" />
+              Converting...
+            </>
+          ) : (
+            'Convert'
+          )}
+        </button>
+      </div>
     </div>
   );
 };
