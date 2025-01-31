@@ -30,6 +30,18 @@ const Navbar = ({ isAuthenticated, setIsAuthenticated }) => {
             route: "/file-converter", 
             keywords: ["convert", "file", "format", "change", "transform", "type"],
             description: "Convert files between different formats"
+        },
+        {
+            name: "Video To Audio",
+            route: "/video-to-audio",
+            keywords: ["convert", "video", "audio", "format", "change", "transform", "type"],
+            description: "Convert videos to audio"
+        },
+        {
+            name: "Video Editor",
+            route: "/video-editor",
+            keywords: ["edit", "video", "quality", "fps", "change", "transform", "type"],
+            description: "Edit video quality, FPS, and more"
         }
     ];
 

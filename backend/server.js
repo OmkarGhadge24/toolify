@@ -29,12 +29,14 @@ const authRoutes = require("./routes/authRoutes");
 const backgroundRemoverRoutes = require("./routes/backgroundRemover");
 const textExtractorRoutes = require("./routes/textExtractorRoutes");
 const fileConverterRoutes = require("./routes/fileConverterRoutes");
+const videoToolsRoutes = require("./routes/videoToolsRoutes");
 
 app.use("/api/contacts", contactRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api", backgroundRemoverRoutes);
 app.use("/api", textExtractorRoutes);
 app.use("/api", fileConverterRoutes);
+app.use("/api/video", videoToolsRoutes);
 
 // MongoDB Connection
 const connectDB = async () => {

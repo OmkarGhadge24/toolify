@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaImage, FaFileAlt, FaVideo, FaFileUpload } from 'react-icons/fa';
+import { FaImage, FaFileAlt, FaVideo, FaFileUpload, FaMusic } from 'react-icons/fa';
 
 const tools = [
   {
@@ -28,13 +28,21 @@ const tools = [
     active: true,
   },
   {
-    id: 'audio-extractor',
-    name: 'Audio Extractor',
-    description: 'Extract audio from video files',
-    icon: FaVideo,
-    route: '/audio-extractor',
-    active: false,
+    id:'video-to-audio',
+    name: 'Video to Audio',
+    description: 'Convert videos to audio',
+    icon: FaMusic,
+    route: '/video-to-audio',
+    active: true,
   },
+  {
+    id:'video-editor',
+    name: 'Video Editor',
+    description: 'Edit video quality, FPS, and more',
+    icon: FaVideo,
+    route: '/video-editor',
+    active: true,
+  }
 ];
 
 const Main = () => {
