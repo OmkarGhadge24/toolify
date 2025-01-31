@@ -5,14 +5,19 @@ const FormData = require('form-data');
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
-require('dotenv').config();
+
+const envPath = path.join(__dirname, '../.env');
+require('dotenv').config({ path: envPath });
+
+const apiKey = process.env.NINJA_API_KEY;
+
+const uploadDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const uploadDir = path.join(__dirname, '../uploads');
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
         cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
@@ -41,35 +46,74 @@ router.post('/text-extractor/extract-text', upload.single('file'), async (req, r
             return res.status(400).json({ error: 'No file uploaded' });
         }
 
-        const formData = new FormData();
-        formData.append('image', fs.createReadStream(req.file.path));
-        
-        const response = await axios.post('https://api.api-ninjas.com/v1/imagetotext', 
-            formData,
-            {
-                headers: {
-                    'X-Api-Key': process.env.NINJA_API_KEY,
-                    ...formData.getHeaders()
-                }
-            }
-        );
-
-        fs.unlink(req.file.path, (err) => {
-            if (err) console.error('Error deleting temp file:', err);
-        });
-
-        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-            const extractedText = response.data
-                .sort((a, b) => a.y - b.y || a.x - b.x)
-                .map(item => item.text)
-                .join(' ');
-            
-            res.json({ text: extractedText });
-        } else {
-            res.status(400).json({ 
-                error: 'No text found in the image',
-                details: 'Please make sure the image contains clear, readable text'
+        if (!apiKey) {
+            return res.status(500).json({ 
+                error: 'API configuration error',
+                details: 'API key is not configured'
             });
+        }
+
+        const formData = new FormData();
+        const fileStream = fs.createReadStream(req.file.path);
+        formData.append('image', fileStream);
+        
+        try {
+            const response = await axios.post('https://api.api-ninjas.com/v1/imagetotext', 
+                formData,
+                {
+                    headers: {
+                        'X-Api-Key': apiKey,
+                        ...formData.getHeaders()
+                    },
+                    maxContentLength: Infinity,
+                    maxBodyLength: Infinity
+                }
+            );
+
+            fileStream.destroy();
+
+            fs.unlink(req.file.path, (err) => {
+                if (err) console.error('Error deleting temp file:', err);
+            });
+
+            if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+                const extractedText = response.data
+                    .sort((a, b) => a.y - b.y || a.x - b.x)
+                    .map(item => item.text)
+                    .join(' ');
+                
+                return res.json({ text: extractedText });
+            } else {
+                return res.status(400).json({ 
+                    error: 'No text found in the image',
+                    details: 'Please make sure the image contains clear, readable text'
+                });
+            }
+        } catch (apiError) {
+            fileStream.destroy();
+            
+            fs.unlink(req.file.path, (err) => {
+                if (err) console.error('Error deleting temp file:', err);
+            });
+
+            if (apiError.response?.status === 402) {
+                return res.status(402).json({ error: 'API quota exceeded' });
+            } else if (apiError.response?.status === 401) {
+                return res.status(401).json({ 
+                    error: 'Invalid API key',
+                    details: 'The provided API key is invalid or expired'
+                });
+            } else if (apiError.response?.status === 400) {
+                return res.status(400).json({ 
+                    error: 'Invalid request',
+                    details: 'Please ensure your image is in JPEG or PNG format and under 500KB'
+                });
+            } else {
+                return res.status(500).json({ 
+                    error: 'Error processing file',
+                    details: apiError.response?.data?.error || apiError.message 
+                });
+            }
         }
     } catch (error) {
         if (req.file && req.file.path) {
@@ -78,21 +122,10 @@ router.post('/text-extractor/extract-text', upload.single('file'), async (req, r
             });
         }
 
-        if (error.response?.status === 402) {
-            res.status(402).json({ error: 'API quota exceeded' });
-        } else if (error.response?.status === 401) {
-            res.status(401).json({ error: 'Invalid API key' });
-        } else if (error.response?.status === 400) {
-            res.status(400).json({ 
-                error: 'Invalid request',
-                details: 'Please ensure your image is in JPEG or PNG format and under 500KB'
-            });
-        } else {
-            res.status(500).json({ 
-                error: 'Error processing file',
-                details: error.response?.data?.error || error.message 
-            });
-        }
+        return res.status(500).json({ 
+            error: 'Server error',
+            details: error.message
+        });
     }
 });
 

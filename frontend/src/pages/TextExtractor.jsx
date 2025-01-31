@@ -64,11 +64,11 @@ const TextExtractor = () => {
       setExtractedText(response.data.text);
       toast.success("Text extracted successfully!");
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.details ||
-        error.response?.data?.error ||
-        "Error processing image";
-      toast.error(errorMessage);
+      const errorMessage = error.response?.data?.details || 
+                         error.response?.data?.error || 
+                         error.message || 
+                         "Error processing image";
+      toast.error(`Error: ${errorMessage}`);
     } finally {
       setLoading(false);
     }

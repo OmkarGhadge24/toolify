@@ -23,6 +23,7 @@
     "dotenv": "^16.4.7",
     "exceljs": "^4.4.0",
     "express": "^4.21.2",
+    "ffmpeg": "^0.0.4",
     "form-data": "^4.0.1",
     "html-pdf-node": "^1.0.8",
     "jsonwebtoken": "^9.0.2",
