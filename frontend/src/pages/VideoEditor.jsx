@@ -4,20 +4,28 @@ import { FaArrowLeft } from 'react-icons/fa';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+
 const VideoEditor = () => {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [settings, setSettings] = useState({
-    quality: '720',
-    fps: '30',
-    bitrate: '1M'
-  });
+  const [settings, setSettings] = useState({ quality: '720', fps: '30', bitrate: '1M' });
   const navigate = useNavigate();
+
+  const resetState = () => {
+    setFile(null);
+    setError('');
+    setLoading(false);
+  };
 
   const handleFileSelect = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile && selectedFile.type.startsWith('video/')) {
+      if (selectedFile.size > MAX_FILE_SIZE) {
+        setError('File size exceeds 500MB limit.');
+        return;
+      }
       setFile(selectedFile);
       setError('');
     } else {
@@ -30,6 +38,10 @@ const VideoEditor = () => {
     e.preventDefault();
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile && droppedFile.type.startsWith('video/')) {
+      if (droppedFile.size > MAX_FILE_SIZE) {
+        setError('File size exceeds 500MB limit.');
+        return;
+      }
       setFile(droppedFile);
       setError('');
     } else {
@@ -41,14 +53,6 @@ const VideoEditor = () => {
     e.preventDefault();
   };
 
-  const handleSettingsChange = (e) => {
-    const { name, value } = e.target;
-    setSettings(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
   const processVideo = async () => {
     if (!file) {
       setError('Please select a video file first');
@@ -57,20 +61,37 @@ const VideoEditor = () => {
 
     setLoading(true);
     setError('');
-
     const formData = new FormData();
     formData.append('video', file);
-    Object.keys(settings).forEach(key => {
-      formData.append(key, settings[key]);
-    });
+    Object.keys(settings).forEach(key => formData.append(key, settings[key]));
 
     try {
-      const response = await axios.post('/api/video/process-video', formData, {
-        responseType: 'blob'
+      const response = await axios.post('http://localhost:5000/api/video/process-video', formData, {
+        responseType: 'blob',
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+        timeout: 300000 // 5 minutes timeout for large videos
       });
 
-      // Create download link
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      // Check if the response is an error message
+      const contentType = response.headers['content-type'];
+      if (contentType && contentType.includes('application/json')) {
+        const reader = new FileReader();
+        reader.onload = async () => {
+          try {
+            const errorData = JSON.parse(reader.result);
+            setError(errorData.error || 'Error processing video');
+          } catch (e) {
+            setError('Error processing video. Please try again.');
+          }
+        };
+        reader.readAsText(response.data);
+        return;
+      }
+
+      // Create download link for successful response
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'video/mp4' }));
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', 'processed-video.mp4');
@@ -79,10 +100,26 @@ const VideoEditor = () => {
       link.remove();
       window.URL.revokeObjectURL(url);
 
-      setFile(null);
+      resetState();
     } catch (err) {
-      setError('Error processing video. Please try again.');
-      console.error('Error:', err);
+      if (err.code === 'ECONNABORTED') {
+        setError('Request timed out. The video might be too large or the server is busy.');
+      } else if (err.response?.status === 404) {
+        setError('Server endpoint not found. Please check if the backend server is running.');
+      } else if (err.response?.data instanceof Blob) {
+        const reader = new FileReader();
+        reader.onload = async () => {
+          try {
+            const errorData = JSON.parse(reader.result);
+            setError(errorData.error || 'Error processing video');
+          } catch (e) {
+            setError('Error processing video. Please try again.');
+          }
+        };
+        reader.readAsText(err.response.data);
+      } else {
+        setError(err.response?.data?.error || 'Error processing video. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -90,103 +127,77 @@ const VideoEditor = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <div className="max-w-7xl mx-auto px-4 mb-6">
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            <FaArrowLeft className="mr-2" />
-            Back to Tools
-          </button>
-        </div>
+      <button onClick={() => navigate('/')} className="flex items-center text-gray-600 hover:text-gray-900">
+        <FaArrowLeft className="mr-2" /> Back to Tools
+      </button>
       <h1 className="text-3xl font-bold mb-8 text-center">Video Editor</h1>
-      
-      <div
-        className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-6"
+
+      <div 
+        className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-6" 
         onDrop={handleDrop}
         onDragOver={handleDragOver}
       >
-        <input
-          type="file"
-          accept="video/*"
-          onChange={handleFileSelect}
-          className="hidden"
-          id="video-input"
+        <input 
+          type="file" 
+          accept="video/*" 
+          onChange={handleFileSelect} 
+          className="hidden" 
+          id="video-input" 
         />
-        
         <label htmlFor="video-input" className="cursor-pointer">
           <FiUpload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <p className="text-lg mb-2">
-            {file ? file.name : 'Drag and drop your video here or click to browse'}
-          </p>
-          <p className="text-sm text-gray-500">
-            Supports most video formats (MP4, AVI, MOV, etc.)
-          </p>
+          <p className="text-lg mb-2">{file ? file.name : 'Drag and drop or click to browse'}</p>
+          <p className="text-sm text-gray-500">Supports MP4, AVI, MOV, etc. (Max 500MB)</p>
         </label>
       </div>
 
-      <div className="bg-gray-50 rounded-lg p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <FiSettings className="h-5 w-5" />
-          Video Settings
-        </h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Quality
-            </label>
-            <select
-              name="quality"
-              value={settings.quality}
-              onChange={handleSettingsChange}
-              className="w-full rounded-md border border-gray-300 p-2"
-            >
-              <option value="480">480p</option>
-              <option value="720">720p</option>
-              <option value="1080">1080p</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              FPS
-            </label>
-            <select
-              name="fps"
-              value={settings.fps}
-              onChange={handleSettingsChange}
-              className="w-full rounded-md border border-gray-300 p-2"
-            >
-              <option value="24">24 fps</option>
-              <option value="30">30 fps</option>
-              <option value="60">60 fps</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Bitrate
-            </label>
-            <select
-              name="bitrate"
-              value={settings.bitrate}
-              onChange={handleSettingsChange}
-              className="w-full rounded-md border border-gray-300 p-2"
-            >
-              <option value="500k">Low (500k)</option>
-              <option value="1M">Medium (1M)</option>
-              <option value="2M">High (2M)</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
       {error && (
-        <div className="text-red-500 text-center mb-4">
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6">
           {error}
         </div>
       )}
+
+      <div className="bg-gray-50 rounded-lg p-6 mb-6">
+        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          <FiSettings className="h-5 w-5" /> Video Settings
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <select 
+            name="quality" 
+            value={settings.quality} 
+            onChange={e => setSettings({ ...settings, quality: e.target.value })} 
+            className="border rounded p-2 w-full"
+            disabled={loading}
+          >
+            <option value="480">480p</option>
+            <option value="720">720p</option>
+            <option value="1080">1080p</option>
+          </select>
+          <select 
+            name="fps" 
+            value={settings.fps} 
+            onChange={e => setSettings({ ...settings, fps: e.target.value })} 
+            className="border rounded p-2 w-full"
+            disabled={loading}
+          >
+            <option value="24">24 FPS</option>
+            <option value="30">30 FPS</option>
+            <option value="60">60 FPS</option>
+          </select>
+          <select 
+            name="bitrate" 
+            value={settings.bitrate} 
+            onChange={e => setSettings({ ...settings, bitrate: e.target.value })} 
+            className="border rounded p-2 w-full"
+            disabled={loading}
+          >
+            <option value="500k">Low (500k)</option>
+            <option value="1M">Medium (1M)</option>
+            <option value="2M">High (2M)</option>
+            <option value="5M">Ultra (5M)</option>
+          </select>
+        </div>
+      </div>
 
       <button
         onClick={processVideo}
@@ -209,7 +220,7 @@ const VideoEditor = () => {
 
       <div className="mt-6 text-center text-sm text-gray-500">
         <p>Maximum file size: 500MB</p>
-        <p>Output format: MP4</p>
+        <p>Output formats: MP4</p>
       </div>
     </div>
   );

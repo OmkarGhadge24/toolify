@@ -1,54 +1,65 @@
-toolify
-│
-├── frontend
-│   ├── public
-│   │   ├── fonts/
-│   │   ├── images/
-│   │   ├── favicon.ico
-│   │   ├── index.html
-│   │   ├── manifest.json
-│   │   ├── robots.txt
+Toolify/
+│── backend/
+│   │── controllers/
+│   │   ├── authController.js
+│   │   ├── fileConverterController.js
+│   │   ├── textExtractorController.js
+│   │   ├── videoToolsController.js
 │   │
-│   ├── src
-│   │   ├── components
-│   │   │   ├── About.jsx
-│   │   │   ├── ContactUs.jsx
+│   │── middleware/
+│   │   ├── auth.js
+│   │
+│   │── models/
+│   │   ├── Contact.js
+│   │   ├── User.js
+│   │
+│   │── routes/
+│   │   ├── authRoutes.js
+│   │   ├── backgroundRemover.js
+│   │   ├── contactRoutes.js
+│   │   ├── fileConverterRoutes.js
+│   │   ├── textExtractorRoutes.js
+│   │   ├── videoToolsRoutes.js
+│   │
+│   │── uploads/
+│   │── utils/
+│   │── .env
+│   │── .gitignore
+│   │── package.json
+│   │── package-lock.json
+│   │── Readme.md
+│   │── server.js
+│
+│── frontend/
+│   │── public/
+│   │── src/
+│   │   │── components/
+│   │   │   ├── converters/
+│   │   │   │   ├── About.jsx
+│   │   │   │   ├── ContactUs.jsx
+│   │   │   ├── Login.jsx
 │   │   │   ├── Main.jsx
 │   │   │   ├── Menu.jsx
 │   │   │   ├── Navbar.jsx
 │   │   │   ├── Others.jsx
 │   │   │   ├── Profile.jsx
-│   │   │   ├── Login.jsx
 │   │   │   ├── Signup.jsx
-│   │   │
-│   │   ├── pages
+│   │
+│   │   │── pages/
+│   │   │   ├── BackgroundRemover.jsx
+│   │   │   ├── FileConverter.jsx
 │   │   │   ├── Home.jsx
-│   │   │
-│   │   ├── utils
-│   │   │   ├── App.js
-│   │   │   ├── index.css
-│   │   │   ├── index.js
-│   │   │   ├── reportWebVitals.js
+│   │   │   ├── TextExtractor.jsx
+│   │   │   ├── VideoEditor.jsx
+│   │   │   ├── VideoToAudio.jsx
 │   │
-│   ├── .gitignore
-│   ├── package-lock.json
-│   ├── package.json
-│   ├── README.md
-│   ├── tailwind.config.js
-│
-├── backend
-│   ├── controllers
-│   │   ├── toolController.js
+│   │   │── App.js
+│   │   │── index.js
+│   │   │── index.css
+│   │   │── reportWebVitals.js
 │   │
-│   ├── models
-│   │   ├── Contact.js
-│   │
-│   ├── routes
-│   │   ├── contactRoutes.js
-│   │
-│   ├── node_modules/
-│   ├── .env
-│   ├── .gitignore
-│   ├── app.js
-│   ├── package-lock.json
-│   ├── package.json
+│   │── .gitignore
+│   │── package.json
+│   │── package-lock.json
+│   │── README.md
+│   │── tailwind.config.js
