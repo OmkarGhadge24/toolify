@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaImage, FaFileAlt, FaVideo, FaFileUpload, FaMusic } from 'react-icons/fa';
+import { FaImage, FaFileAlt, FaVideo, FaFileUpload, FaMusic, FaFilePdf } from 'react-icons/fa';
 
 const tools = [
   {
@@ -41,6 +41,14 @@ const tools = [
     description: 'Edit video quality, FPS, and more',
     icon: FaVideo,
     route: '/video-editor',
+    active: true,
+  },
+  {
+    id:'pdf-editor',
+    name: 'Pdf Editor',
+    description: 'Edit pdf files, merge and split',
+    icon: FaFilePdf,
+    route: '/pdf-editor',
     active: true,
   }
 ];

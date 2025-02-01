@@ -30,6 +30,7 @@ const backgroundRemoverRoutes = require("./routes/backgroundRemover");
 const textExtractorRoutes = require("./routes/textExtractorRoutes");
 const fileConverterRoutes = require("./routes/fileConverterRoutes");
 const videoToolsRoutes = require("./routes/videoToolsRoutes");
+const pdfRoutes = require('./routes/pdfRoutes');
 
 app.use("/api/contacts", contactRoutes);
 app.use("/api/auth", authRoutes);
@@ -37,6 +38,7 @@ app.use("/api", backgroundRemoverRoutes);
 app.use("/api", textExtractorRoutes);
 app.use("/api", fileConverterRoutes);
 app.use("/api/video", videoToolsRoutes);
+app.use('/api/pdf', pdfRoutes);
 
 // MongoDB Connection
 const connectDB = async () => {
