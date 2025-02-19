@@ -4,6 +4,7 @@ import ConverterCard from '../components/converters/ConverterCard';
 import ConversionArea from '../components/converters/ConversionArea';
 import { FaFileImage, FaFileWord, FaFilePdf, FaFilePowerpoint, FaFileExcel, FaFileArchive } from 'react-icons/fa';
 import { FaArrowLeft } from 'react-icons/fa';
+import { useTheme } from '../context/ThemeContext';
 
 // List of supported converters
 const converters = [
@@ -141,6 +142,7 @@ const FileConverter = () => {
   const [selectedConverter, setSelectedConverter] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   const handleConvert = async (files) => {
     if (!files || files.length === 0) {
@@ -228,48 +230,75 @@ const FileConverter = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {selectedConverter ? (
-        <div>
-          <button
-            onClick={() => setSelectedConverter(null)}
-            className="flex items-center text-blue-600 hover:text-blue-800 mb-4"
-          >
-            <FaArrowLeft className="mr-2" />
-            Back to Converters
-          </button>
-          <ConversionArea
-            converter={selectedConverter}
-            onConvert={handleConvert}
-            allowMultiple={selectedConverter.allowMultiple}
-          />
+    <div className={`min-h-screen ${
+      theme === "light" ? "bg-gray-50" : "bg-[#151623]"
+    }`}>
+      {/* Header */}
+      <div className={`${
+        theme === "light" 
+          ? "bg-white shadow-sm" 
+          : "bg-[#1a1b2e] shadow-sm"
+      }`}>
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          {selectedConverter ? (
+            <button
+              onClick={() => setSelectedConverter(null)}
+              className={`flex items-center transition-colors ${
+                theme === "light"
+                  ? "text-gray-600 hover:text-gray-900"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              <FaArrowLeft className="mr-2" />
+              Back to Converters
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate("/")}
+              className={`flex items-center transition-colors ${
+                theme === "light"
+                  ? "text-gray-600 hover:text-gray-900"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              <FaArrowLeft className="mr-2" />
+              Back to Tools
+            </button>
+          )}
         </div>
-      ) : (
-        <div>
-          <div className="max-w-7xl mx-auto px-4 mb-6">
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            <FaArrowLeft className="mr-2" />
-            Back to Tools
-          </button>
-        </div>
-          <h1 className="text-3xl font-bold mb-8 text-center">File Converter</h1>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {converters.map((converter) => (
-              <ConverterCard
-                key={converter.id}
-                converter={converter}
-                onClick={() => {
-                  setSelectedConverter(converter);
-                  setSelectedFiles([]);
-                }}
-              />
-            ))}
+      </div>
+
+      <div className="container mx-auto px-4 py-8">
+        {selectedConverter ? (
+          <div>
+            <ConversionArea
+              converter={selectedConverter}
+              onConvert={handleConvert}
+              allowMultiple={selectedConverter.allowMultiple}
+            />
           </div>
-        </div>
-      )}
+        ) : (
+          <div>
+            <h1 className={`text-3xl font-bold mb-8 text-center ${
+              theme === "light" ? "text-gray-800" : "text-white"
+            }`}>
+              File Converter
+            </h1>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {converters.map((converter) => (
+                <ConverterCard
+                  key={converter.id}
+                  converter={converter}
+                  onClick={() => {
+                    setSelectedConverter(converter);
+                    setSelectedFiles([]);
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

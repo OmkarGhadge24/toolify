@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaCloudUploadAlt } from 'react-icons/fa';
 import axios from 'axios';
+import { useTheme } from '../context/ThemeContext';
 
 const BackgroundRemover = () => {
+  const { theme } = useTheme();
   const [selectedFile, setSelectedFile] = useState(null);
   const [processedImage, setProcessedImage] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -78,13 +80,23 @@ const BackgroundRemover = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen ${
+      theme === "light" ? "bg-gray-50" : "bg-[#151623]"
+    }`}>
       {/* Header */}
-      <div className="bg-white shadow-sm">
+      <div className={`${
+        theme === "light" 
+          ? "bg-white shadow-sm" 
+          : "bg-[#1a1b2e] shadow-sm"
+      }`}>
         <div className="max-w-7xl mx-auto px-4 py-4">
           <button
             onClick={() => navigate('/')}
-            className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+            className={`flex items-center transition-colors ${
+              theme === "light"
+                ? "text-gray-600 hover:text-gray-900"
+                : "text-gray-400 hover:text-white"
+            }`}
           >
             <FaArrowLeft className="mr-2" />
             Back to Tools
@@ -95,16 +107,30 @@ const BackgroundRemover = () => {
       {/* Main Content */}
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Background Remover</h1>
-          <p className="text-gray-600">Remove background from your images with AI</p>
+          <h1 className={`text-3xl font-bold mb-4 ${
+            theme === "light" ? "text-gray-900" : "text-white"
+          }`}>
+            Background Remover
+          </h1>
+          <p className={theme === "light" ? "text-gray-600" : "text-gray-300"}>
+            Remove background from your images with AI
+          </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className={`rounded-2xl shadow-lg p-8 ${
+          theme === "light" 
+            ? "bg-white" 
+            : "bg-[#1a1b2e]"
+        }`}>
           {!processedImage ? (
             <div className="flex flex-col items-center justify-center">
               <div
                 className={`w-full max-w-2xl h-[400px] border-2 border-dashed rounded-xl transition-all ${
-                  selectedFile ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-blue-500'
+                  selectedFile 
+                    ? 'border-green-500 bg-green-50' 
+                    : theme === "light"
+                      ? 'border-gray-300 hover:border-blue-500'
+                      : 'border-gray-600 hover:border-[#3B40E8]'
                 } flex flex-col items-center justify-center cursor-pointer`}
                 onDrop={handleDrop}
                 onDragOver={(e) => e.preventDefault()}
@@ -116,17 +142,23 @@ const BackgroundRemover = () => {
                       alt="Original"
                       className="max-h-full object-contain rounded-lg"
                     />
-                    <p className="mt-2 text-sm text-gray-500">
+                    <p className={`mt-2 text-sm ${
+                      theme === "light" ? "text-gray-500" : "text-gray-400"
+                    }`}>
                       {selectedFile.name}
                     </p>
                   </div>
                 ) : (
                   <div className="text-center p-6">
-                    <FaCloudUploadAlt className="mx-auto h-16 w-16 text-blue-500 mb-4" />
-                    <h3 className="text-xl font-medium text-gray-900 mb-2">
+                    <FaCloudUploadAlt className="mx-auto h-16 w-16 text-[#3B40E8] mb-4" />
+                    <h3 className={`text-xl font-medium mb-2 ${
+                      theme === "light" ? "text-gray-900" : "text-white"
+                    }`}>
                       Drop your image here
                     </h3>
-                    <p className="text-sm text-gray-500 mb-4">
+                    <p className={`text-sm mb-4 ${
+                      theme === "light" ? "text-gray-500" : "text-gray-400"
+                    }`}>
                       Supports JPG, JPEG, PNG (max 5MB)
                     </p>
                     <input
@@ -138,7 +170,7 @@ const BackgroundRemover = () => {
                     />
                     <label
                       htmlFor="file-input"
-                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer transition-colors"
+                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#3B40E8] hover:bg-[#2D31B3] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3B40E8] cursor-pointer transition-colors"
                     >
                       Select Image
                     </label>
@@ -150,7 +182,7 @@ const BackgroundRemover = () => {
                 <button
                   onClick={removeBackground}
                   disabled={loading}
-                  className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                  className="mt-6 px-6 py-3 text-white rounded-lg font-medium bg-[#3B40E8] hover:bg-[#2D31B3] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3B40E8] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
                   {loading ? (
                     <span className="flex items-center">
@@ -187,15 +219,22 @@ const BackgroundRemover = () => {
                   <div 
                     className="w-full h-full"
                     style={{
-                      background: `
-                        linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
-                        linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
-                        linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
-                        linear-gradient(-45deg, transparent 75%, #f0f0f0 75%)
-                      `,
+                      background: theme === "light" 
+                        ? `
+                          linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
+                          linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
+                          linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
+                          linear-gradient(-45deg, transparent 75%, #f0f0f0 75%)
+                        `
+                        : `
+                          linear-gradient(45deg, #252942 25%, transparent 25%),
+                          linear-gradient(-45deg, #252942 25%, transparent 25%),
+                          linear-gradient(45deg, transparent 75%, #252942 75%),
+                          linear-gradient(-45deg, transparent 75%, #252942 75%)
+                        `,
                       backgroundSize: '20px 20px',
                       backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
-                      backgroundColor: 'white'
+                      backgroundColor: theme === "light" ? 'white' : '#1a1b2e'
                     }}
                   >
                     <img
@@ -212,18 +251,20 @@ const BackgroundRemover = () => {
                   style={{ 
                     left: `${sliderPosition}%`,
                     width: '2px',
-                    backgroundColor: 'white',
+                    backgroundColor: theme === "light" ? 'white' : '#252942',
                     boxShadow: '0 0 10px rgba(0,0,0,0.3)'
                   }}
                 >
                   {/* Slider Handle */}
                   <div 
-                    className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center cursor-ew-resize"
+                    className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full shadow-lg flex items-center justify-center cursor-ew-resize ${
+                      theme === "light" ? "bg-white" : "bg-[#252942]"
+                    }`}
                     style={{ left: '1px' }}
                   >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                      <path d="M8 5L3 10L8 15" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M16 5L21 10L16 15" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M8 5L3 10L8 15" stroke={theme === "light" ? "#666" : "#fff"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M16 5L21 10L16 15" stroke={theme === "light" ? "#666" : "#fff"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </div>
                 </div>
@@ -253,13 +294,13 @@ const BackgroundRemover = () => {
                     setProcessedImage(null);
                     setSelectedFile(null);
                   }}
-                  className="px-6 py-3 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors"
+                  className="px-6 py-3 bg-[#252942] text-white rounded-lg font-medium hover:bg-[#2e3252] transition-colors"
                 >
                   Process New Image
                 </button>
                 <button
                   onClick={downloadImage}
-                  className="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                  className="px-6 py-3 bg-[#3B40E8] text-white rounded-lg font-medium hover:bg-[#2D31B3] transition-colors"
                 >
                   Download Result
                 </button>

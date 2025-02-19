@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { MdOutlineEmail } from "react-icons/md";
 import { IoLogoGithub, IoLogoLinkedin } from "react-icons/io";
+import { useTheme } from "../context/ThemeContext";
 
 const ContactUs = () => {
+  const { theme } = useTheme();
   const [formData, setFormData] = useState({
     name: "",
     age: "",
@@ -46,7 +48,7 @@ const ContactUs = () => {
 
         const data = await response.json();
         alert("Form submitted successfully!");
-        
+
         // Reset form
         setFormData({
           name: "",
@@ -71,7 +73,11 @@ const ContactUs = () => {
   };
 
   return (
-    <div className="p-4 max-w-2xl mx-auto">
+    <div
+      className={`p-4 max-w-2xl mx-auto ${
+        theme === "light" ? "text-black" : "text-white"
+      }`}
+    >
       <h1 className="text-2xl font-bold mb-4 text-center">Contact Us</h1>
 
       {/* Contact Form */}
@@ -87,7 +93,11 @@ const ContactUs = () => {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none"
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none ${
+                theme === "light"
+                  ? "bg-white border-gray-300 text-black"
+                  : "bg-[#252942] border-gray-600 text-white"
+              }`}
               placeholder="Enter your name"
             />
             {errors.name && (
@@ -105,7 +115,11 @@ const ContactUs = () => {
               name="age"
               value={formData.age}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none"
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none ${
+                theme === "light"
+                  ? "bg-white border-gray-300 text-black"
+                  : "bg-[#252942] border-gray-600 text-white"
+              }`}
               placeholder="Enter your age"
             />
             {errors.age && (
@@ -125,7 +139,11 @@ const ContactUs = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none"
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none ${
+                theme === "light"
+                  ? "bg-white border-gray-300 text-black"
+                  : "bg-[#252942] border-gray-600 text-white"
+              }`}
               placeholder="Enter your email"
             />
             {errors.email && (
@@ -143,7 +161,11 @@ const ContactUs = () => {
               name="country"
               value={formData.country}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none"
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none ${
+                theme === "light"
+                  ? "bg-white border-gray-300 text-black"
+                  : "bg-[#252942] border-gray-600 text-white"
+              }`}
               placeholder="Enter your country"
             />
             {errors.country && (
@@ -161,7 +183,11 @@ const ContactUs = () => {
             name="description"
             value={formData.description}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none resize-none"
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none resize-none ${
+              theme === "light"
+                ? "bg-white border-gray-300 text-black"
+                : "bg-[#252942] border-gray-600 text-white"
+            }`}
             placeholder="Describe your issue or request"
             rows="5"
           />
@@ -173,7 +199,8 @@ const ContactUs = () => {
         <div className="text-center">
           <button
             type="submit"
-            className="w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none"
+            className={`w-full py-2 rounded-lg focus:outline-none bg-[#3B40E8] hover:bg-[#2D31B3] text-white
+            `}
           >
             Submit
           </button>
@@ -186,6 +213,7 @@ const ContactUs = () => {
           href="mailto:omkarghadge68@gmail.com"
           target="_blank"
           rel="noopener noreferrer"
+          className={theme === "light" ? "text-black" : "text-white"}
         >
           <MdOutlineEmail
             size={30}
@@ -196,6 +224,7 @@ const ContactUs = () => {
           href="https://linkedin.com/in/omkar-ghadge-996b80317"
           target="_blank"
           rel="noopener noreferrer"
+          className={theme === "light" ? "text-black" : "text-white"}
         >
           <IoLogoLinkedin
             size={30}
@@ -206,6 +235,7 @@ const ContactUs = () => {
           href="https://github.com/OmkarGhadge24"
           target="_blank"
           rel="noopener noreferrer"
+          className={theme === "light" ? "text-black" : "text-white"}
         >
           <IoLogoGithub
             size={30}

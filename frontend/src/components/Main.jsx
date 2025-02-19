@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaImage, FaFileAlt, FaVideo, FaFileUpload, FaMusic, FaFilePdf } from 'react-icons/fa';
+import { useTheme } from '../context/ThemeContext';
 
 const tools = [
   {
@@ -55,27 +56,42 @@ const tools = [
 
 const Main = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center">
+    <div className={`min-h-screen flex flex-col items-center rounded-lg ${
+      theme === "light" ? "bg-gray-50" : "bg-[#151623]"
+    }`}>
       {/* Main Content */}
       <main className="w-full max-w-6xl px-4 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {tools.map((tool) => (
             <div
               key={tool.id}
-              className={`flex flex-col items-start bg-white border rounded-lg shadow-sm transition-transform transform hover:scale-105 ${
+              className={`flex flex-col items-start rounded-lg shadow-sm transition-transform transform hover:scale-105 ${
                 !tool.active && 'opacity-70'
+              } ${
+                theme === "light" 
+                  ? "bg-white border" 
+                  : "bg-[#1a1b2e] border-[#252942]"
               }`}
             >
               <div className="p-6 w-full">
-                <div className="w-12 h-12 flex items-center justify-center bg-gray-100 rounded-lg mb-4">
-                  <tool.icon className="w-6 h-6 text-blue-600" />
+                <div className={`w-12 h-12 flex items-center justify-center rounded-lg mb-4 ${
+                  theme === "light"
+                    ? "bg-[#3B40E8]/10"
+                    : "bg-[#3B40E8]/20"
+                }`}>
+                  <tool.icon className="w-6 h-6 text-[#3B40E8]" />
                 </div>
-                <h2 className="text-lg font-semibold text-gray-800">
+                <h2 className={`text-lg font-semibold ${
+                  theme === "light" ? "text-gray-800" : "text-white"
+                }`}>
                   {tool.name}
                 </h2>
-                <p className="mt-2 text-sm text-gray-600">
+                <p className={`mt-2 text-sm ${
+                  theme === "light" ? "text-gray-600" : "text-gray-300"
+                }`}>
                   {tool.description}
                 </p>
               </div>
@@ -84,8 +100,10 @@ const Main = () => {
                   onClick={() => tool.active && navigate(tool.route)}
                   className={`w-full py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
                     tool.active
-                      ? 'bg-blue-600 text-white hover:bg-blue-700'
-                      : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                      ? 'bg-[#3B40E8] text-white hover:bg-[#2D31B3]'
+                      : theme === "light"
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                        : 'bg-[#252942] text-gray-400 cursor-not-allowed'
                   }`}
                 >
                   {tool.active ? 'Open Tool' : 'Coming Soon'}

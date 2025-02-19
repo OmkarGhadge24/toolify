@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { FaClipboard, FaArrowLeft, FaUpload, FaTimes } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from '../context/ThemeContext';
 
 const TextExtractor = () => {
   const [file, setFile] = useState(null);
@@ -10,6 +11,7 @@ const TextExtractor = () => {
   const [loading, setLoading] = useState(false);
   const [fileName, setFileName] = useState("");
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -91,12 +93,23 @@ const TextExtractor = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow-sm mb-6">
+    <div className={`min-h-screen ${
+      theme === "light" ? "bg-gray-50" : "bg-[#151623]"
+    }`}>
+      {/* Header */}
+      <div className={`${
+        theme === "light" 
+          ? "bg-white shadow-sm" 
+          : "bg-[#1a1b2e] shadow-sm"
+      }`}>
         <div className="max-w-7xl mx-auto px-4 py-4">
           <button
             onClick={() => navigate("/")}
-            className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+            className={`flex items-center transition-colors ${
+              theme === "light"
+                ? "text-gray-600 hover:text-gray-900"
+                : "text-gray-400 hover:text-white"
+            }`}
           >
             <FaArrowLeft className="mr-2" />
             Back to Tools
@@ -105,14 +118,22 @@ const TextExtractor = () => {
       </div>
 
       <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">
+        <h1 className={`text-3xl font-bold mb-8 text-center mt-6 ${
+          theme === "light" ? "text-gray-800" : "text-white"
+        }`}>
           Text Extractor
         </h1>
 
         <div className="max-w-3xl mx-auto">
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div className={`rounded-lg shadow-md p-6 mb-6 ${
+            theme === "light" ? "bg-white" : "bg-[#1a1b2e]"
+          }`}>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center relative">
+              <div className={`border-2 border-dashed rounded-lg p-6 text-center relative ${
+                theme === "light"
+                  ? "border-gray-300 hover:border-[#3B40E8]"
+                  : "border-gray-600 hover:border-[#3B40E8]"
+              }`}>
                 <input
                   type="file"
                   onChange={handleFileChange}
@@ -124,8 +145,10 @@ const TextExtractor = () => {
                   htmlFor="fileInput"
                   className="cursor-pointer flex flex-col items-center space-y-2"
                 >
-                  <FaUpload className="text-3xl text-gray-400" />
-                  <span className="text-sm font-medium text-gray-700">
+                  <FaUpload className={theme === "light" ? "text-3xl text-[#3B40E8]" : "text-3xl text-[#3B40E8]"} />
+                  <span className={`text-sm font-medium ${
+                    theme === "light" ? "text-gray-700" : "text-gray-300"
+                  }`}>
                     {fileName || "Click to upload image (JPEG/PNG, max 500KB)"}
                   </span>
                 </label>
@@ -133,7 +156,11 @@ const TextExtractor = () => {
                   <button
                     type="button"
                     onClick={handleCancelFile}
-                    className="absolute top-2 right-2 p-1 text-gray-500 hover:text-red-500 transition-colors"
+                    className={`absolute top-2 right-2 p-1 transition-colors ${
+                      theme === "light"
+                        ? "text-gray-500 hover:text-red-500"
+                        : "text-gray-400 hover:text-red-400"
+                    }`}
                     title="Remove file"
                   >
                     <FaTimes />
@@ -144,11 +171,13 @@ const TextExtractor = () => {
               <button
                 type="submit"
                 disabled={loading || !file}
-                className={`w-full py-2 px-4 rounded-md text-white font-medium ${
+                className={`w-full py-2 px-4 rounded-md text-white font-medium transition-colors ${
                   loading || !file
-                    ? "bg-blue-300 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700"
-                } transition-colors`}
+                    ? theme === "light"
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-gray-600 cursor-not-allowed"
+                    : "bg-[#3B40E8] hover:bg-[#2D31B3]"
+                }`}
               >
                 {loading ? (
                   <div className="flex items-center justify-center">
@@ -163,20 +192,32 @@ const TextExtractor = () => {
           </div>
 
           {extractedText && (
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className={`rounded-lg shadow-md p-6 ${
+              theme === "light" ? "bg-white" : "bg-[#1a1b2e]"
+            }`}>
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold text-gray-700">
+                <h2 className={`text-lg font-semibold ${
+                  theme === "light" ? "text-gray-700" : "text-white"
+                }`}>
                   Extracted Text
                 </h2>
                 <button
                   onClick={copyToClipboard}
-                  className="flex items-center px-3 py-1 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                  className={`flex items-center px-3 py-1 text-sm transition-colors ${
+                    theme === "light"
+                      ? "text-[#3B40E8] hover:text-[#2D31B3]"
+                      : "text-[#3B40E8] hover:text-[#4B50F8]"
+                  }`}
                 >
                   <FaClipboard className="mr-2" />
                   Copy
                 </button>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4 min-h-[100px] whitespace-pre-wrap break-words text-gray-700">
+              <div className={`rounded-lg p-4 min-h-[100px] whitespace-pre-wrap break-words ${
+                theme === "light"
+                  ? "bg-gray-50 text-gray-700"
+                  : "bg-[#252942] text-gray-200"
+              }`}>
                 {extractedText}
               </div>
             </div>
