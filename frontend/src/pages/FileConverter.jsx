@@ -19,15 +19,6 @@ const converters = [
     icon: FaFileWord
   },
   {
-    id: 'pdf-to-jpg',
-    title: 'PDF to JPG',
-    description: 'Convert PDF pages to JPG images',
-    fromFormat: 'PDF',
-    toFormat: 'JPG',
-    allowMultiple: false,
-    icon: FaFileImage
-  },
-  {
     id: 'pdf-to-pptx',
     title: 'PDF to PPTX',
     description: 'Convert PDF files to PowerPoint presentations',
@@ -74,6 +65,15 @@ const converters = [
     toFormat: 'PDF',
     allowMultiple: false,
     icon: FaFilePdf
+  },
+  {
+    id: 'pdf-to-jpg',
+    title: 'PDF to JPG',
+    description: 'Convert PDF pages to JPG images',
+    fromFormat: 'PDF',
+    toFormat: 'JPG',
+    allowMultiple: false,
+    icon: FaFileImage
   },
   // Image Conversions
   {
